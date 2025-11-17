@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/NetApi/NetApi.csproj" />
+    <Project Path="src/NetApi.Domain/NetApi.Domain.csproj" />
+  </Folder> 
+  <!-- <Folder name="/tests/">
+    <Project Path="tests/NetApi.Tests/NetApi.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Packages.props" />
+    <File Path="NuGet.config" />
+    <File Path="README.md" />
+  </Folder>
+-->
+</Solution>

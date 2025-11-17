@@ -1,1 +1,1 @@
-# netapi-template
+# .NET Core WebAPI template

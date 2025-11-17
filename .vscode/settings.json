@@ -1,0 +1,5 @@
+{
+  "dotnet.defaultSolution": "NetApi.slnx",
+  "editor.defaultFormatter": "ms-dotnettools.csharp",
+  "editor.formatOnSave": true
+}
