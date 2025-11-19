@@ -1,14 +1,13 @@
 using NetApi.Domain.Abstractions;
-using NetApi.Domain.Dtos;
-using NetApi.Domain.Entities;
+using NetApi.Domain.Common.Abstractions;
+using NetApi.Domain.Common.Models;
+using NetApi.Domain.Users;
 using NetApi.Domain.Util;
 
 namespace NetApi.Domain.Repositories;
 
-public class UserRepository(AppDbContext dbContext) : BaseRepository<User>(dbContext)
+public class UserRepository(AppDbContext dbContext)
 {
-    protected override IQueryable<User> Entities => DbContext.Users.AsQueryable();
-
     protected override IQueryable<User> GetFilteredEntities(IQueryable<User> entities, Filter filter)
     {
         var query = entities;

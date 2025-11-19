@@ -1,14 +1,15 @@
 using System.ComponentModel.DataAnnotations;
-using NetApi.Domain.Abstractions;
-using NetApi.Domain.Contracts;
+using NetApi.Domain.Common.Contracts;
+using NetApi.Domain.Roles;
+using NetApi.Domain.Users.ValueObjects;
 
-namespace NetApi.Domain.Entities;
+namespace NetApi.Domain.Users;
 
-public class User : Int64BaseEntity,
-    IBaseEntity<long>,
+public class User :
     ITimestamp,
     ISoftDelete
 {
+    public UserId Id { get; set; } = UserId.Create();
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
     public string Username { get; set; } = "";

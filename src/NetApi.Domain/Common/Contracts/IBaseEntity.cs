@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace NetApi.Domain.Contracts;
+namespace NetApi.Domain.Common.Contracts;
 
 public interface IBaseEntity
 {

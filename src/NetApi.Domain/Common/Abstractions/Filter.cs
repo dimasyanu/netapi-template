@@ -1,4 +1,4 @@
-namespace NetApi.Domain.Abstractions;
+namespace NetApi.Domain.Common.Abstractions;
 
 public abstract class Filter
 {

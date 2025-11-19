@@ -1,4 +1,5 @@
-using NetApi.Domain.Dtos;
+using NetApi.Domain.Common.Abstractions;
+using NetApi.Domain.Common.Models;
 using NetApi.Domain.Util;
 
 namespace NetApi.Domain.Abstractions;
@@ -19,8 +20,7 @@ public abstract class BaseRepository<T>
     {
         var total = orderedEntities.Count();
         var items = orderedEntities.Skip((int)filter.StartIndex).Take(filter.PageSize).ToList();
-        return new Paginated<T>
-        {
+        return new Paginated<T> {
             Items = items,
             Total = total,
             StartIndex = filter.StartIndex,

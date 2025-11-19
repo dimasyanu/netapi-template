@@ -1,6 +1,6 @@
-using NetApi.Domain.Abstractions;
+using NetApi.Domain.Common.Abstractions;
 
-namespace NetApi.Domain.Dtos;
+namespace NetApi.Domain.Common.Models;
 
 public class UserFilter : Filter
 {

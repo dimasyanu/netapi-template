@@ -1,4 +1,4 @@
-namespace NetApi.Domain.Dtos;
+namespace NetApi.Domain.Common.Models;
 
 public class Paginated<T>
 {

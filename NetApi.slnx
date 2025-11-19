@@ -1,6 +1,6 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/NetApi.Persistance/NetApi.Persistance.csproj" />
+    <Project Path="src/NetApi.Infrastructure/NetApi.Infrastructure.csproj" />
     <Project Path="src/NetApi/NetApi.csproj" />
     <Project Path="src/NetApi.Domain/NetApi.Domain.csproj" />
   </Folder> 
