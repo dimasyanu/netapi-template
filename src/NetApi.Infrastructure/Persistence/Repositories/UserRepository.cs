@@ -1,4 +1,3 @@
-using NetApi.Domain.Abstractions;
 using NetApi.Domain.Common.Abstractions;
 using NetApi.Domain.Common.Models;
 using NetApi.Domain.Users;
@@ -8,7 +7,7 @@ namespace NetApi.Domain.Repositories;
 
 public class UserRepository(AppDbContext dbContext)
 {
-    protected override IQueryable<User> GetFilteredEntities(IQueryable<User> entities, Filter filter)
+    protected IQueryable<User> GetFilteredEntities(IQueryable<User> entities, Filter filter)
     {
         var query = entities;
         if (!string.IsNullOrEmpty(filter.SearchTerm)) {
@@ -25,7 +24,7 @@ public class UserRepository(AppDbContext dbContext)
         return query;
     }
 
-    protected override IOrderedQueryable<User> GetOrderedEntities(IQueryable<User> entities, Order? order)
+    protected IOrderedQueryable<User> GetOrderedEntities(IQueryable<User> entities, Order? order)
     {
         if (order is null) return entities.OrderBy(u => u.Id);
         if (order.PropertyName != null) {

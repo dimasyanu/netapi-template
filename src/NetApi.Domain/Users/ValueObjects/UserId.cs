@@ -2,9 +2,14 @@ using NetApi.Domain.Common.Abstractions;
 
 namespace NetApi.Domain.Users.ValueObjects;
 
-public sealed class UserId(Guid id) : ValueObject
+public sealed class UserId : ValueObject
 {
-    private Guid _id = id;
+    private readonly Guid _id;
+
+    private UserId(Guid id)
+    {
+        _id = id;
+    }
 
     public override IEnumerable<object> GetEqualityComponents()
     {

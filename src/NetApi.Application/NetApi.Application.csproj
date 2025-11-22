@@ -7,8 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Roles/Entities/" />
-    <Folder Include="Users/Entities/" />
+    <ProjectReference Include="../NetApi.Domain/NetApi.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="13.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Common/Models/" />
   </ItemGroup>
 
 </Project>
