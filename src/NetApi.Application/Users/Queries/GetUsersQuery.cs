@@ -10,6 +10,8 @@ public class GetUsersQuery : IQuery<Paginated<User>>
     public string? Username { get; init; }
     public string? Email { get; init; }
     public bool? IsDeleted { get; init; }
+    public string? SortBy { get; init; }
+    public string? SortDirection { get; init; }
     public int StartIndex { get; init; } = 0;
     public int PageSize { get; init; } = 25;
 }

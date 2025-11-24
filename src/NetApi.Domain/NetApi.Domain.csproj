@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Common/Extensions/" />
     <Folder Include="Roles/Entities/" />
     <Folder Include="Users/Entities/" />
   </ItemGroup>

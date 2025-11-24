@@ -7,10 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../NetApi.Domain/NetApi.Domain.csproj" />
+    <ProjectReference Include="../NetApi.Application/NetApi.Application.csproj" />
   </ItemGroup>
 </Project>

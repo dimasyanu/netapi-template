@@ -1,0 +1,16 @@
+using NetApi.Application.Common.Contracts;
+using NetApi.Domain.Users;
+using NetApi.Domain.Users.ValueObjects;
+
+namespace NetApi.Application.Users.Queries;
+
+public class GetUserByIdQueryHandler(IUserRepository repo) : IQueryHandler<GetUserByIdQuery, User>
+{
+    private readonly IUserRepository _repo = repo;
+
+    public async Task<User> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+    {
+        return await _repo.GetByIdAsync(UserId.Create(request.UserId), cancellationToken)
+            ?? throw new KeyNotFoundException($"User with ID {request.UserId} not found.");
+    }
+}

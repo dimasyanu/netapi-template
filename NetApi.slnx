@@ -14,4 +14,7 @@
     <File Path="README.md" />
   </Folder>
 -->
+  <Folder Name="/tests/">
+    <Project Path="tests/NetApi.Application.Test/NetApi.Application.Test.csproj" />
+  </Folder>
 </Solution>

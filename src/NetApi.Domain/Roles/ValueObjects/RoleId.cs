@@ -15,8 +15,8 @@ public sealed class RoleId(short value) : ValueObject
         yield return Value;
     }
 
-    public static RoleId Create()
+    public static RoleId Create(short value = 0)
     {
-        return new RoleId(0);
+        return new RoleId(value);
     }
 }

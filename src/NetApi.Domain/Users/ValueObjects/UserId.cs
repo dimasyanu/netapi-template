@@ -1,8 +1,9 @@
 using NetApi.Domain.Common.Abstractions;
+using NetApi.Domain.Common.Contracts;
 
 namespace NetApi.Domain.Users.ValueObjects;
 
-public sealed class UserId : ValueObject
+public sealed class UserId : ValueObject, IGuidObject
 {
     private readonly Guid _id;
 
@@ -18,4 +19,9 @@ public sealed class UserId : ValueObject
 
     public static UserId Create()
         => new(Guid.NewGuid());
+
+    public static UserId Create(Guid id)
+        => new(id);
+
+    public Guid ToGuid() => _id;
 }

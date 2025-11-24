@@ -1,8 +1,9 @@
 using NetApi.Domain.Common.Abstractions;
+using NetApi.Domain.Common.Contracts;
 
 namespace NetApi.Domain.Users.ValueObjects;
 
-public class EmailAddress : ValueObject
+public class EmailAddress : ValueObject, IStringObject
 {
     private readonly string _emailAddress;
 
@@ -21,4 +22,7 @@ public class EmailAddress : ValueObject
 
     public static EmailAddress NewEmpty()
         => new("");
+
+    public override string ToString()
+        => _emailAddress;
 }
