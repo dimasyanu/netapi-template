@@ -11,6 +11,7 @@ using NetApi.Infrastructure.Persistence;
 using NetApi.Application.Common.Contracts;
 using NetApi.Infrastructure.Persistence.Services;
 using NetApi.Application.Common.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace NetApi.Application.Test.IntegrationTests.Users;
 
@@ -93,5 +94,35 @@ public class UserCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
         await Assert.ThrowsAsync<BadRequestException>(action);
 
         Assert.Equal(Guid.Empty, userId);
+    }
+
+    [Fact]
+    public async Task CreateUser_WithExistingEmail_ShouldThrowConflictException()
+    {
+        var command = new CreateUserCommand {
+            Username = "newuser1",
+            Email = "newuser@example.com",
+            FirstName = "New1",
+            LastName = "User1",
+            Password = "password123",
+            ConfirmPassword = "password123"
+        };
+        var mediator = GetService<IMediator>();
+        await mediator.Send(command);
+
+        command = new CreateUserCommand {
+            Username = "newuser2",
+            Email = "newuser@example.com",
+            FirstName = "New2",
+            LastName = "User2",
+            Password = "password123",
+            ConfirmPassword = "password123"
+        };
+        async Task action() => await mediator.Send(command);
+        await action();
+
+        using var dbContext = GetService<AppDbContext>();
+        var users = await dbContext.Users.ToListAsync();
+        Assert.Single(users);
     }
 }
