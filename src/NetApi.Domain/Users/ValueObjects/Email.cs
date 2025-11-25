@@ -17,7 +17,7 @@ public class EmailAddress : ValueObject, IStringObject
         yield return _emailAddress;
     }
 
-    public static EmailAddress Create(string emailAddress)
+    public static EmailAddress FromString(string emailAddress)
         => new(emailAddress);
 
     public static EmailAddress NewEmpty()

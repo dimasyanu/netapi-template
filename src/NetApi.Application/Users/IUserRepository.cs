@@ -72,6 +72,21 @@ public interface IUserRepository
     Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets a user by its email.
+    /// </summary>
+    /// <param name="email"></param>
+    /// <returns></returns>
+    User? GetByEmail(string email);
+
+    /// <summary>
+    /// Gets a user by its email.
+    /// </summary>
+    /// <param name="email"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Updates an existing user in the repository.
     /// </summary>
     /// <param name="user"></param>

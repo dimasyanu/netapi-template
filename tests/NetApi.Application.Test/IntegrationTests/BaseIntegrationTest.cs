@@ -1,40 +1,70 @@
-using System.Reflection;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using NetApi.Application.Common.Contracts;
 using NetApi.Application.Users.Commands;
 using NetApi.Application.Users.Queries;
+using NetApi.Domain.Users;
+using NetApi.Domain.Users.ValueObjects;
 using NetApi.Infrastructure.Persistence;
 using Xunit.Abstractions;
 
 namespace NetApi.Application.Test.IntegrationTests;
 
-public class BaseIntegrationTest
+public abstract class BaseIntegrationTest : IDisposable
 {
-    private readonly IServiceProvider _service;
+    protected readonly IServiceProvider Service;
     protected readonly ITestOutputHelper Output;
+
+    protected User Admin { get; private set; } = new();
 
     public BaseIntegrationTest(ITestOutputHelper output)
     {
         Output = output;
+
+        var dbName = "TestDb_" + new Random().Next().ToString();
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddDbContext<AppDbContext>(options => {
-            options.UseInMemoryDatabase("TestDb");
+            options.UseInMemoryDatabase(dbName);
         });
         serviceCollection.AddLogging();
-        serviceCollection.AddMediatR(conf => conf.RegisterServicesFromAssemblyContaining<GetUserByIdQueryHandler>());
-        serviceCollection.AddMediatR(conf => conf.RegisterServicesFromAssemblyContaining<CreateUserCommandHandler>());
 
         ConfigureServices(serviceCollection);
-        _service = serviceCollection.BuildServiceProvider();
+        Service = serviceCollection.BuildServiceProvider();
+
+        ConfigureAdminUser();
     }
 
     protected virtual void ConfigureServices(IServiceCollection services)
     {
     }
 
-    protected T GetService<T>() where T : notnull
+    private void ConfigureAdminUser()
     {
-        return _service.GetRequiredService<T>();
+        using var scope = Service.CreateScope();
+        var hasher = scope.ServiceProvider.GetRequiredService<IHashingService>();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        dbContext.Database.EnsureCreated();
+        Admin = new User {
+            Id = UserId.Create(),
+            FirstName = "Admin",
+            LastName = "User",
+            Username = "admin",
+            Email = EmailAddress.FromString("admin@mail.com"),
+            CreatedAt = DateTime.Now,
+            CreatedBy = "system",
+            UpdatedAt = DateTime.Now,
+            UpdatedBy = "system",
+            PasswordHash = hasher.HashPassword("Admin@123"),
+        };
+        dbContext.Users.Add(Admin);
+        dbContext.SaveChanges();
+    }
+
+    public void Dispose()
+    {
+        using var scope = Service.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        dbContext.Database.EnsureDeleted();
+        GC.SuppressFinalize(this);
     }
 }

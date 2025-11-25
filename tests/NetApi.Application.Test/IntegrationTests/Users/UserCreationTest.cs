@@ -12,6 +12,7 @@ using NetApi.Application.Common.Contracts;
 using NetApi.Infrastructure.Persistence.Services;
 using NetApi.Application.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using FluentAssertions;
 
 namespace NetApi.Application.Test.IntegrationTests.Users;
 
@@ -21,16 +22,21 @@ public class UserCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
     {
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddSingleton<IHashingService, HashingService>();
+
+        services.AddMediatR(conf => conf.RegisterServicesFromAssemblyContaining<GetUserByIdQueryHandler>());
+        services.AddMediatR(conf => conf.RegisterServicesFromAssemblyContaining<CreateUserCommandHandler>());
+        services.AddMediatR(conf => conf.RegisterServicesFromAssemblyContaining<UpdateUserCommandHandler>());
     }
 
     [Fact]
     public async Task GetUserById_ShouldSucceed()
     {
         // Arrange
-        var userRepository = GetService<IUserRepository>();
+        using var scope = Service.CreateScope();
+        var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
         var newUser = new User {
             Username = "testuser",
-            Email = EmailAddress.Create("testuser@example.com"),
+            Email = EmailAddress.FromString("testuser@example.com"),
             FirstName = "Test",
             LastName = "User",
             PasswordHash = "hashedpassword",
@@ -38,17 +44,17 @@ public class UserCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
         var userId = await userRepository.CreateAsync(newUser);
 
         // Act
-        var mediator = GetService<IMediator>();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
         var request = new GetUserByIdQuery(userId.ToGuid());
         var user = await mediator.Send(request);
 
         // Assert
-        Assert.NotNull(user);
-        Assert.Equal(userId, user.Id);
-        Assert.Equal(newUser.Username, user.Username);
-        Assert.Equal(newUser.Email, user.Email);
-        Assert.Equal(newUser.FirstName, user.FirstName);
-        Assert.Equal(newUser.LastName, user.LastName);
+        user.Should().NotBeNull();
+        user.Id.Should().Be(userId);
+        user.Username.Should().Be(newUser.Username);
+        user.Email.Should().Be(newUser.Email);
+        user.FirstName.Should().Be(newUser.FirstName);
+        user.LastName.Should().Be(newUser.LastName);
     }
 
     [Fact]
@@ -60,69 +66,134 @@ public class UserCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
             FirstName = "New",
             LastName = "User",
             Password = "password123",
-            ConfirmPassword = "password123"
+            ConfirmPassword = "password123",
+            User = Admin
         };
-        var mediator = GetService<IMediator>();
-        var userId = await mediator.Send(command);
-        Assert.NotEqual(Guid.Empty, userId);
 
-        using var dbContext = GetService<AppDbContext>();
-        var createdUser = await dbContext.Users.FindAsync(UserId.Create(userId));
+        UserId? userId = null;
+        using (var scope = Service.CreateScope()) {
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            userId = await mediator.Send(command);
+            userId.ToGuid().Should().NotBe(Guid.Empty);
+        }
+        var ts = DateTime.Now;
 
-        Assert.NotNull(createdUser);
-        Assert.Equal(command.Username, createdUser!.Username);
-        Assert.Equal(command.Email, createdUser.Email.ToString());
-        Assert.Equal(command.FirstName, createdUser.FirstName);
-        Assert.Equal(command.LastName, createdUser.LastName);
-        Assert.NotEqual(command.Password, createdUser.PasswordHash); // Assuming password is hashed
+        using (var scope = Service.CreateScope()) {
+            using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var users = await dbContext.Users.ToListAsync();
+            var createdUser = await dbContext.Users.FindAsync(userId);
+
+            createdUser.Should().NotBeNull();
+            createdUser.Username.Should().Be(command.Username);
+            createdUser.Email.ToString().Should().Be(command.Email);
+            createdUser.FirstName.Should().Be(command.FirstName);
+            createdUser.LastName.Should().Be(command.LastName);
+            createdUser.PasswordHash.Should().NotBe(command.Password); // Assuming password is hashed
+            createdUser.CreatedAt.Should().BeCloseTo(ts, TimeSpan.FromSeconds(5));
+            createdUser.CreatedBy.Should().Be(Admin.Username);
+            createdUser.UpdatedAt.Should().BeCloseTo(ts, TimeSpan.FromSeconds(5));
+            createdUser.UpdatedBy.Should().Be(Admin.Username);
+        }
     }
 
     [Fact]
     public async Task CreateUser_WithMismatchedPasswords_ShouldThrowBadRequestException()
     {
+        using var scope = Service.CreateScope();
         var command = new CreateUserCommand {
             Username = "newuser",
             Email = "newuser@example.com",
             FirstName = "New",
             LastName = "User",
             Password = "password123!",
-            ConfirmPassword = "password123"
+            ConfirmPassword = "password123",
+            User = Admin
         };
-        var mediator = GetService<IMediator>();
-        var userId = Guid.Empty;
-        async Task action() => userId = await mediator.Send(command);
-        await Assert.ThrowsAsync<BadRequestException>(action);
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        UserId? userId = null;
+        Func<Task> action = async () => userId = await mediator.Send(command);
+        await action.Should().ThrowAsync<BadRequestException>();
 
-        Assert.Equal(Guid.Empty, userId);
+        userId.Should().BeNull();
     }
 
     [Fact]
     public async Task CreateUser_WithExistingEmail_ShouldThrowConflictException()
     {
+        using var scope = Service.CreateScope();
+        var email = "newuser@example.com";
         var command = new CreateUserCommand {
             Username = "newuser1",
-            Email = "newuser@example.com",
+            Email = email,
             FirstName = "New1",
             LastName = "User1",
             Password = "password123",
-            ConfirmPassword = "password123"
+            ConfirmPassword = "password123",
+            User = Admin
         };
-        var mediator = GetService<IMediator>();
-        await mediator.Send(command);
 
-        command = new CreateUserCommand {
-            Username = "newuser2",
-            Email = "newuser@example.com",
-            FirstName = "New2",
-            LastName = "User2",
-            Password = "password123",
-            ConfirmPassword = "password123"
-        };
-        async Task action() => await mediator.Send(command);
-        await action();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        Func<Task> action = async () => await mediator.Send(command);
+        await action.Should().NotThrowAsync();
 
-        using var dbContext = GetService<AppDbContext>();
-        var users = await dbContext.Users.ToListAsync();
+        // Second attempt with same email
+        action = async () => await mediator.Send(command);
+        (await action.Should().ThrowAsync<BadRequestException>())
+            .Which.Errors.Should().HaveCountGreaterThan(0);
+
+        using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var users = await dbContext.Users.Where(x => x.Email == EmailAddress.FromString(email)).ToListAsync();
         Assert.Single(users);
+    }
+
+    [Fact]
+    public async Task UpdateUser_ShouldSucceed()
+    {
+        UserId? userId = null;
+        User? user = null;
+        var email = "newuser@example.com";
+        var command = new CreateUserCommand {
+            Username = "newuser1",
+            Email = email,
+            FirstName = "New1",
+            LastName = "User1",
+            Password = "password123",
+            ConfirmPassword = "password123",
+            User = Admin
+        };
+
+        using (var scope = Service.CreateScope()) {
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
+            // Arrange
+            var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+            userId = await mediator.Send(command);
+
+            user = await mediator.Send(new GetUserByIdQuery(userId.ToGuid()));
+
+            await Task.Delay(250); // Ensure timestamp difference
+
+            // Act
+            var updateCommand = new UpdateUserCommand {
+                UserId = userId,
+                FirstName = "newuser1_1",
+                LastName = "User1_1",
+                User = user,
+            };
+            Func<Task> action = async () => user = await mediator.Send(updateCommand);
+            await action.Should().NotThrowAsync();
+        }
+
+        using (var scope = Service.CreateScope()) {
+            using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var users = await dbContext.Users.ToListAsync();
+            var updatedUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            updatedUser.Should().NotBeNull();
+            updatedUser.FirstName.Should().Be("newuser1_1");
+            updatedUser.LastName.Should().Be("User1_1");
+            updatedUser.UpdatedAt.Should().NotBe(updatedUser.CreatedAt).And.BeAfter(updatedUser.CreatedAt);
+            updatedUser.CreatedBy.Should().Be(Admin.Username);
+            updatedUser.UpdatedBy.Should().Be(user.Username);
+        }
     }
 }

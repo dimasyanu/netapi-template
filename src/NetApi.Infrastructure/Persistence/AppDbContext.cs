@@ -19,7 +19,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<User>(builder => {
             builder.Property(u => u.Id).HasConversion(
                 v => v.ToGuid(),
-                v => UserId.Create(v)
+                v => UserId.FromGuid(v)
             );
             builder.Property(u => u.FirstName).IsRequired().HasMaxLength(50);
             builder.Property(u => u.LastName).IsRequired().HasMaxLength(50);
@@ -29,7 +29,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .HasMaxLength(100)
                 .HasConversion(
                     v => v.ToString(),
-                    v => EmailAddress.Create(v)
+                    v => EmailAddress.FromString(v)
                 );
             builder.Property(u => u.PasswordHash).IsRequired();
             builder.Property(u => u.RefreshToken).IsRequired(false).HasMaxLength(255);

@@ -12,6 +12,8 @@ public sealed class UserId : ValueObject, IGuidObject
         _id = id;
     }
 
+    public static UserId Empty { get; } = new(Guid.Empty);
+
     public override IEnumerable<object> GetEqualityComponents()
     {
         yield return _id;
@@ -20,8 +22,10 @@ public sealed class UserId : ValueObject, IGuidObject
     public static UserId Create()
         => new(Guid.NewGuid());
 
-    public static UserId Create(Guid id)
+    public static UserId FromGuid(Guid id)
         => new(id);
 
     public Guid ToGuid() => _id;
+    public override string ToString() => _id.ToString();
+    public bool IsEmpty() => _id == Guid.Empty;
 }

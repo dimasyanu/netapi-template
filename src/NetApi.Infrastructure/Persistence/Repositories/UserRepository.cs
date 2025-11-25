@@ -29,14 +29,16 @@ public class UserRepository(ILogger<UserRepository> logger, AppDbContext dbConte
         => Entities.OrderByDescending(u => u.UpdatedAt);
 
     public User? GetByUsername(string username)
-    {
-        return DbContext.Users.FirstOrDefault(u => u.Username == username);
-    }
+        => DbContext.Users.FirstOrDefault(u => u.Username == username);
 
     public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
-    {
-        return await DbContext.Users.FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
-    }
+        => await DbContext.Users.FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
+
+    public User? GetByEmail(string email)
+        => DbContext.Users.FirstOrDefault(u => u.Email == EmailAddress.FromString(email));
+
+    public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken)
+        => await DbContext.Users.FirstOrDefaultAsync(u => u.Email == EmailAddress.FromString(email), cancellationToken);
 
     protected override IQueryable<User> FilterEntities(IQueryable<User> entities, UserFilter filter)
     {

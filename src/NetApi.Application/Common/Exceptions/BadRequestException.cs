@@ -1,8 +1,7 @@
 namespace NetApi.Application.Common.Exceptions;
 
-public class BadRequestException : Exception
+public class BadRequestException(List<KeyValuePair<string, string[]>> errors, string message = "Bad Request") : Exception(message)
 {
-    public BadRequestException(string message = "Bad Request") : base(message)
-    {
-    }
+    private readonly List<KeyValuePair<string, string[]>> _errors = errors;
+    public IReadOnlyList<KeyValuePair<string, string[]>> Errors => _errors.AsReadOnly();
 }

@@ -1,10 +1,10 @@
+using NetApi.Application.Common.Abstractions;
+using NetApi.Domain.Users.ValueObjects;
 using System.ComponentModel.DataAnnotations;
-using System.Windows.Input;
-using NetApi.Application.Common.Contracts;
 
 namespace NetApi.Application.Users.Commands;
 
-public class CreateUserCommand : ICommand<Guid>
+public class CreateUserCommand : AuthorizedCommand<UserId>
 {
     [Required]
     public string Username { get; set; } = "";
