@@ -1,8 +1,14 @@
+using MediatR;
+
 namespace NetApi.Application.Common.Contracts;
 
 public interface IJobService
 {
-    void Enqueue(ICommand command);
+    Task EnqueueAsync<TCommand>(TCommand command, CancellationToken cancellationToken) where TCommand : IBaseRequest;
 
-    void Enqueue<T>(ICommand<T> command);
+    IReadOnlyList<IBaseRequest> GetQueuedJobs();
+
+    IBaseRequest? Pop();
+
+    Task StartAsync(CancellationToken cancellationToken);
 }

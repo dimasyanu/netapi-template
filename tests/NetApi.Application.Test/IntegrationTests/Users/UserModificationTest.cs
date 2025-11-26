@@ -80,8 +80,5 @@ public class UserModificationTest(ITestOutputHelper output) : BaseIntegrationTes
     [Fact]
     public async Task ChangeEmail_ShouldSucceed()
     {
-        UserId? userId = null;
-        User? user = null;
-        var email = "";
     }
 }

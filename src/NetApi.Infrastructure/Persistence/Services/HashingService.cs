@@ -4,6 +4,11 @@ namespace NetApi.Infrastructure.Persistence.Services;
 
 public class HashingService : IHashingService
 {
+    public string GenerateSecureToken(int length = 32)
+    {
+        throw new NotImplementedException();
+    }
+
     public string HashPassword(string password, string? salt = null)
     {
         return BCrypt.Net.BCrypt.HashPassword(password);

@@ -20,7 +20,7 @@ public class ResetPasswordCommandHandler(IJobService jobService) : ICommandHandl
             throw new BadRequestException([KeyValuePair.Create("Email", new[] { "Email is required." })]);
         }
 
-        jobService.Enqueue(
+        jobService.EnqueueAsync(
             new SendPasswordResetEmailCommand {
                 Email = request.Email,
                 User = request.User

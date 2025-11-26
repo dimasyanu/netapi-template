@@ -23,8 +23,10 @@ public class UserCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddSingleton<IHashingService, HashingService>();
 
-        services.AddMediatR(conf => conf.RegisterServicesFromAssemblyContaining<GetUserByIdQueryHandler>());
-        services.AddMediatR(conf => conf.RegisterServicesFromAssemblyContaining<CreateUserCommandHandler>());
+        services.AddMediatR(conf => {
+            conf.RegisterServicesFromAssemblyContaining<GetUserByIdQueryHandler>();
+            conf.RegisterServicesFromAssemblyContaining<CreateUserCommandHandler>();
+        });
     }
 
     [Fact]

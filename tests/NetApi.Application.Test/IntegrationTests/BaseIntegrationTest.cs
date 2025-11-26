@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NetApi.Application.Common.Contracts;
-using NetApi.Application.Users.Commands;
-using NetApi.Application.Users.Queries;
 using NetApi.Domain.Users;
 using NetApi.Domain.Users.ValueObjects;
 using NetApi.Infrastructure.Persistence;
