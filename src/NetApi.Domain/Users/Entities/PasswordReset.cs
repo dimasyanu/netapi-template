@@ -1,0 +1,17 @@
+using NetApi.Domain.Users.ValueObjects;
+
+namespace NetApi.Domain.Users.Entities;
+
+public class PasswordReset
+{
+    public PasswordResetId Id { get; set; } = PasswordResetId.Empty;
+    public UserId UserId { get; set; } = UserId.Empty;
+    public string Token { get; set; } = "";
+    public DateTime ExpiresAt { get; set; }
+    public bool IsUsed { get; set; }
+
+    public void MarkAsUsed()
+    {
+        IsUsed = true;
+    }
+}

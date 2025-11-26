@@ -20,9 +20,11 @@ public class EmailAddress : ValueObject, IStringObject
     public static EmailAddress FromString(string emailAddress)
         => new(emailAddress);
 
-    public static EmailAddress NewEmpty()
-        => new("");
+    public static EmailAddress Empty => new("");
 
     public override string ToString()
         => _emailAddress;
+
+    public bool IsEmpty()
+        => string.IsNullOrEmpty(_emailAddress);
 }
