@@ -14,4 +14,8 @@
   <ItemGroup>
     <ProjectReference Include="../NetApi.Application/NetApi.Application.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Persistence/Models/" />
+  </ItemGroup>
 </Project>

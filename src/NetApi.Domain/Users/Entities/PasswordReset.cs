@@ -8,10 +8,13 @@ public class PasswordReset
     public UserId UserId { get; set; } = UserId.Empty;
     public string Token { get; set; } = "";
     public DateTime ExpiresAt { get; set; }
-    public bool IsUsed { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UsedAt { get; set; }
+
+    public bool IsUsed => UsedAt != null;
 
     public void MarkAsUsed()
     {
-        IsUsed = true;
+        UsedAt = DateTime.Now;
     }
 }

@@ -1,6 +1,7 @@
 using MediatR;
 using NetApi.Application.Common.Contracts;
 using NetApi.Application.Common.Exceptions;
+using NetApi.Application.Common.Models;
 using NetApi.Application.Emails.Commands;
 using NetApi.Domain.Users.ValueObjects;
 
@@ -20,11 +21,15 @@ public class ResetPasswordCommandHandler(IJobService jobService) : ICommandHandl
             throw new BadRequestException([KeyValuePair.Create("Email", new[] { "Email is required." })]);
         }
 
-        jobService.EnqueueAsync(
-            new SendPasswordResetEmailCommand {
-                Email = request.Email,
-                User = request.User
-            }
+        await jobService.EnqueueAsync(
+            new Job<SendPasswordResetEmailCommand> {
+                Command = new() {
+                    Email = request.Email,
+                    User = request.User
+                },
+                Key = request.Email.ToString() + "_" + DateTime.Now.ToString("yyyyMMddHHmmssss"),
+            },
+            cancellationToken
         );
 
         return request.Email;

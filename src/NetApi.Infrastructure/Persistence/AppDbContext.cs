@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using NetApi.Domain.Roles;
 using NetApi.Domain.Roles.ValueObjects;
 using NetApi.Domain.Users;
+using NetApi.Domain.Users.Entities;
 using NetApi.Domain.Users.ValueObjects;
 
 namespace NetApi.Infrastructure.Persistence;
@@ -10,12 +11,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<User> Users { get; set; }
     public DbSet<Role> Roles { get; set; }
+    public DbSet<PasswordReset> PasswordResets { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        #region User Entity Configuration
         modelBuilder.Entity<User>(builder => {
             builder.Property(u => u.Id).HasConversion(
                 v => v.ToGuid(),
@@ -45,9 +46,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             builder.HasIndex(u => u.Email).IsUnique();
             builder.HasIndex(u => u.Username).IsUnique();
         });
-        #endregion
 
-        #region Role Entity Configuration
         modelBuilder.Entity<Role>(builder => {
             builder.Property(r => r.Id)
                 .HasConversion(
@@ -75,7 +74,30 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                     r => r.HasOne<Role>().WithMany().HasForeignKey("RoleId").HasPrincipalKey(nameof(Role.Id)),
                     j => j.HasKey("UserId", "RoleId"));
         });
-        #endregion
 
+        modelBuilder.Entity<PasswordReset>(builder => {
+            builder.Property(pr => pr.Id).HasConversion(
+                v => v.ToGuid(),
+                v => PasswordResetId.FromGuid(v)
+            ).ValueGeneratedOnAdd();
+            builder.Property(pr => pr.UserId).HasConversion(
+                v => v.ToGuid(),
+                v => UserId.FromGuid(v)
+            );
+            builder.Property(pr => pr.Token).IsRequired().HasMaxLength(255);
+            builder.Property(pr => pr.ExpiresAt).IsRequired();
+            builder.Property(pr => pr.CreatedAt).IsRequired();
+
+            builder.HasKey(pr => pr.Id);
+            builder.HasIndex(pr => pr.Token).IsUnique();
+
+            builder.Ignore(pr => pr.IsUsed);
+
+            builder
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(pr => pr.UserId)
+                .HasPrincipalKey(u => u.Id);
+        });
     }
 }
