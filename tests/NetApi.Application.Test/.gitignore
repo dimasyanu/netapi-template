@@ -1,2 +1,6 @@
 bin
 obj
+
+appsettings.*
+
+!appsettings.example.json
