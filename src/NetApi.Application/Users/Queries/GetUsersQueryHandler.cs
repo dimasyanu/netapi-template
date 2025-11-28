@@ -2,6 +2,7 @@ using NetApi.Application.Common.Contracts;
 using NetApi.Application.Common.Models;
 using NetApi.Domain.Common.Models;
 using NetApi.Domain.Users;
+using NetApi.Domain.Users.Models;
 
 namespace NetApi.Application.Users.Queries;
 

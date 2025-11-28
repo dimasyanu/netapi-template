@@ -3,8 +3,11 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using NetApi.Application.Common.Contracts;
 using NetApi.Application.Test.Mocks;
+using NetApi.Application.Users;
 using NetApi.Application.Users.Commands;
+using NetApi.Domain.Users.ValueObjects;
 using NetApi.Infrastructure.Persistence;
+using NetApi.Infrastructure.Persistence.Repositories;
 using NetApi.Infrastructure.Persistence.Services;
 using Quartz;
 using Quartz.Impl;
@@ -27,6 +30,7 @@ public class ResetPasswordTest(ITestOutputHelper output) : BaseIntegrationTest(o
         services.AddMediatR(conf => {
             conf.RegisterServicesFromAssemblyContaining<ResetPasswordCommandHandler>();
         });
+        services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
 
         services.AddQuartz(opt => {
             opt.UseInMemoryStore();
@@ -54,7 +58,7 @@ public class ResetPasswordTest(ITestOutputHelper output) : BaseIntegrationTest(o
             var resetPasswordRequest = new ResetPasswordCommand { Email = Admin.Email, User = Admin };
             var email = await mediator.Send(resetPasswordRequest);
             email.Should().NotBeNull().And.Be(Admin.Email);
-            await Task.Delay(250); // Wait for the "email" to be "sent"
+            await Task.Delay(100); // Wait for the "email" to be "sent"
 
             var mailService = scope.ServiceProvider.GetRequiredService<DummyMailInboxClient>();
             (await mailService.GetInboxAsync(Admin.Email)).Should().HaveCount(1);
@@ -62,6 +66,7 @@ public class ResetPasswordTest(ITestOutputHelper output) : BaseIntegrationTest(o
             using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var passwordResetEntities = dbContext.PasswordResets.ToList();
             passwordResetEntities.Should().HaveCount(1);
+            passwordResetEntities[0].Id.Should().NotBe(PasswordResetId.Empty);
         }
     }
 }

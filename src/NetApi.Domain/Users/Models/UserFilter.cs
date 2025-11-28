@@ -1,6 +1,6 @@
 using NetApi.Domain.Common.Abstractions;
 
-namespace NetApi.Domain.Common.Models;
+namespace NetApi.Domain.Users.Models;
 
 public class UserFilter : Filter
 {

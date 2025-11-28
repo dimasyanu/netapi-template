@@ -1,6 +1,7 @@
 using NetApi.Application.Common.Models;
 using NetApi.Domain.Common.Models;
 using NetApi.Domain.Users;
+using NetApi.Domain.Users.Models;
 using NetApi.Domain.Users.ValueObjects;
 
 namespace NetApi.Application.Users;

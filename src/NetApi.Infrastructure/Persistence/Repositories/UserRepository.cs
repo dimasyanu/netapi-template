@@ -3,8 +3,8 @@ using Microsoft.Extensions.Logging;
 using NetApi.Application.Users;
 using NetApi.Domain.Abstractions;
 using NetApi.Domain.Common.Contracts;
-using NetApi.Domain.Common.Models;
 using NetApi.Domain.Users;
+using NetApi.Domain.Users.Models;
 using NetApi.Domain.Users.ValueObjects;
 using NetApi.Infrastructure.Persistence;
 
@@ -25,8 +25,8 @@ public class UserRepository(ILogger<UserRepository> logger, AppDbContext dbConte
         nameof(User.DeletedAt),
     ];
 
-    protected override IOrderedQueryable<User> DefaultSort()
-        => Entities.OrderByDescending(u => u.UpdatedAt);
+    protected override IOrderedQueryable<User> DefaultSort(IQueryable<User> users)
+        => users.OrderByDescending(u => u.UpdatedAt);
 
     public User? GetByUsername(string username)
         => DbContext.Users.FirstOrDefault(u => u.Username == username);

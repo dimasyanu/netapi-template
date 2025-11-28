@@ -17,7 +17,7 @@ public abstract class BaseRepository<TEntity, TKey, TFilter>(ILogger logger, App
     protected readonly ILogger _logger = logger;
 
     public abstract string[] SortableFields();
-    protected abstract IOrderedQueryable<TEntity> DefaultSort();
+    protected abstract IOrderedQueryable<TEntity> DefaultSort(IQueryable<TEntity> entities);
     protected abstract IQueryable<TEntity> Entities { get; }
     protected abstract IQueryable<TEntity> FilterEntities(IQueryable<TEntity> entities, TFilter filter);
     protected Paginated<TEntity> GetPaginatedResult(IOrderedQueryable<TEntity> orderedEntities, TFilter filter)
@@ -183,7 +183,7 @@ public abstract class BaseRepository<TEntity, TKey, TFilter>(ILogger logger, App
 
     protected virtual IOrderedQueryable<TEntity> GetOrderedEntities(IQueryable<TEntity> entities, SortingOption? order)
     {
-        if (order is null) return DefaultSort();
+        if (order is null) return DefaultSort(entities);
         if (order.SortBy != null) {
             if (!SortableFields().Any(prop => prop.Equals(order.SortBy, StringComparison.OrdinalIgnoreCase))) {
                 throw new ArgumentException($"Invalid SortBy value: {order.SortBy}");
@@ -195,6 +195,6 @@ public abstract class BaseRepository<TEntity, TKey, TFilter>(ILogger logger, App
 
             return entities.OrderBy(u => EF.Property<object>(u, order.SortBy));
         }
-        return DefaultSort();
+        return DefaultSort(entities);
     }
 }

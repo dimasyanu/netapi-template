@@ -1,8 +1,9 @@
+using NetApi.Domain.Common.Contracts;
 using NetApi.Domain.Users.ValueObjects;
 
 namespace NetApi.Domain.Users.Entities;
 
-public class PasswordReset
+public class PasswordReset : IEntity<PasswordResetId>
 {
     public PasswordResetId Id { get; set; } = PasswordResetId.Empty;
     public UserId UserId { get; set; } = UserId.Empty;
