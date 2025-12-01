@@ -17,9 +17,10 @@ public class SendPasswordResetEmailCommandHandler(IEmailTemplateManager template
         template.SetProperty("ResetLink", $"https://example.com/reset-password?email={request.Email}&token=some-generated-token");
 
         await mailService.SendAsync(
-            to: [request.Email],
+            to: new[] { request.Email },
             subject: template.Subject,
-            body: template.Render()
+            body: template.Render(),
+            cancellationToken: cancellationToken
         );
     }
 }

@@ -14,8 +14,5 @@ public class PasswordResetEntity : IEntity<PasswordResetId>
 
     public bool IsUsed => UsedAt != null;
 
-    public void MarkAsUsed()
-    {
-        UsedAt = DateTime.Now;
-    }
+    public void MarkAsUsed() => UsedAt = DateTime.Now;
 }

@@ -39,7 +39,7 @@ public class User : IHasEntity<UserEntity>
             UpdatedAt = userEntity.UpdatedAt,
             UpdatedBy = userEntity.UpdatedBy,
             IsDeleted = userEntity.DeletedAt.HasValue,
-            Roles = [.. userEntity.Roles?.Select(Role.FromRoleEntity) ?? []],
+            Roles = [.. userEntity.Roles?.Select(Role.FromEntity) ?? []],
             UserSettings = UserSetting.FromEntities(userEntity.UserSettings)
         };
     }
@@ -60,6 +60,7 @@ public class User : IHasEntity<UserEntity>
             UpdatedBy = UpdatedBy,
             DeletedAt = IsDeleted ? DateTime.Now : null,
             DeletedBy = IsDeleted ? UpdatedBy : null,
+            Roles = [.. Roles?.Select(r => r.ToEntity()) ?? []],
         };
     }
 }

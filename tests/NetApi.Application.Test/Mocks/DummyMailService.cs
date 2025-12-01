@@ -7,7 +7,7 @@ public class DummyMailService : IMailService
 {
     private readonly List<EmailMessage> _inbox = [];
 
-    public async Task<bool> SendAsync(EmailAddress[] to, string subject, string body, EmailAddress[]? cc = null, EmailAddress[]? bcc = null)
+    public async Task<bool> SendAsync(EmailAddress[] to, string subject, string body, EmailAddress[]? cc = null, EmailAddress[]? bcc = null, CancellationToken cancellationToken = default)
     {
         foreach (var mailAddress in to) {
             _inbox.Add(new EmailMessage(mailAddress, subject, body, cc, bcc));
@@ -15,12 +15,12 @@ public class DummyMailService : IMailService
         return true;
     }
 
-    public async Task<IReadOnlyList<EmailMessage>> GetInboxAsync(EmailAddress address)
+    public async Task<IReadOnlyList<EmailMessage>> GetInboxAsync(EmailAddress address, CancellationToken cancellationToken = default)
     {
-        return _inbox
+        return await Task.FromResult(_inbox
             .Where(email => email.To == address)
             .ToList()
-            .AsReadOnly();
+            .AsReadOnly());
     }
 }
 

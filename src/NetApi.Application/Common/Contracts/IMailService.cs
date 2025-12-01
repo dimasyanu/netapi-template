@@ -5,5 +5,5 @@ namespace NetApi.Application.Common.Contracts;
 
 public interface IMailService
 {
-    Task<bool> SendAsync(EmailAddress[] to, string subject, string body, EmailAddress[]? cc = null, EmailAddress[]? bcc = null);
+    Task<bool> SendAsync(EmailAddress[] to, string subject, string body, EmailAddress[]? cc = null, EmailAddress[]? bcc = null, CancellationToken cancellationToken = default);
 }

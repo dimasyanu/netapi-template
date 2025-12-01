@@ -1,6 +1,5 @@
 using MediatR;
 using NetApi.Application.Common.Contracts;
-using NetApi.Application.Common.Exceptions;
 using NetApi.Application.Common.Models;
 using NetApi.Infrastructure.Persistence.Models;
 using Quartz;
@@ -78,8 +77,8 @@ public class QuartzJobService : IJobService
     {
         await Task.Delay(200, cancellationToken); // Small delay to ensure jobs are registered
 
-        var scheduler = await _schedulerFactory.GetScheduler();
-        var keys = await scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup());
+        var scheduler = await _schedulerFactory.GetScheduler(cancellationToken);
+        var keys = await scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup(), cancellationToken);
 
         var results = new List<Job>();
         foreach (var key in keys) {

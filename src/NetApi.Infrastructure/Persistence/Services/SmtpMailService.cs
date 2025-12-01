@@ -11,7 +11,7 @@ public class SmtpMailService(AppSetting appSetting) : IMailService
 {
     private readonly AppSetting _appSetting = appSetting;
 
-    public async Task<bool> SendAsync(EmailAddress[] to, string subject, string body, EmailAddress[]? cc = null, EmailAddress[]? bcc = null)
+    public async Task<bool> SendAsync(EmailAddress[] to, string subject, string body, EmailAddress[]? cc = null, EmailAddress[]? bcc = null, CancellationToken cancellationToken = default)
     {
         var smtpSettings = _appSetting.SmtpSettings
             ?? throw new InvalidConfigurationException("SMTP settings are not configured.");
@@ -41,7 +41,7 @@ public class SmtpMailService(AppSetting appSetting) : IMailService
         AddMailAddresses(mailMessage.Bcc, bcc);
 
         var t = DateTime.Now;
-        await client.SendMailAsync(mailMessage);
+        await client.SendMailAsync(mailMessage, cancellationToken);
         var msg = "SMTP Email sent successfully. Elapsed time: " + (DateTime.Now - t).Seconds + " s";
         Console.WriteLine(msg);
 

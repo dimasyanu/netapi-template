@@ -8,10 +8,11 @@ namespace NetApi.Infrastructure.Persistence;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public DbSet<UserEntity> Users { get; set; }
-    public DbSet<UserSettingEntity> UserSettings { get; set; }
-    public DbSet<RoleEntity> Roles { get; set; }
     public DbSet<PasswordResetEntity> PasswordResets { get; set; }
+    public DbSet<RoleEntity> Roles { get; set; }
+    public DbSet<UserEntity> Users { get; set; }
+    public DbSet<UserRoleEntity> UserRoles { get; set; }
+    public DbSet<UserSettingEntity> UserSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -68,11 +69,37 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             builder
                 .HasMany(r => r.Users)
                 .WithMany(u => u.Roles)
-                .UsingEntity<Dictionary<string, object>>(
-                    "UserRoles",
+                .UsingEntity<UserRoleEntity>(
                     l => l.HasOne<UserEntity>().WithMany().HasForeignKey("UserId").HasPrincipalKey(nameof(UserEntity.Id)),
                     r => r.HasOne<RoleEntity>().WithMany().HasForeignKey("RoleId").HasPrincipalKey(nameof(RoleEntity.Id)),
                     j => j.HasKey("UserId", "RoleId"));
+        });
+
+        modelBuilder.Entity<UserRoleEntity>(builder => {
+            builder.Property(ur => ur.UserId).HasConversion(
+                v => v.ToGuid(),
+                v => UserId.FromGuid(v)
+            );
+            builder.Property(ur => ur.RoleId).HasConversion(
+                v => v.Value,
+                v => RoleId.Create(v)
+            );
+            builder.Property(ur => ur.AssignedAt).IsRequired();
+
+            builder.HasKey(ur => new { ur.UserId, ur.RoleId });
+
+            builder
+                .HasOne(ur => ur.User)
+                .WithMany()
+                .HasForeignKey(ur => ur.UserId)
+                .HasPrincipalKey(u => u.Id);
+
+            builder
+                .HasOne(ur => ur.Role)
+                .WithMany()
+                .HasForeignKey(ur => ur.RoleId)
+                .HasPrincipalKey(r => r.Id);
+
         });
 
         modelBuilder.Entity<PasswordResetEntity>(builder => {
@@ -125,5 +152,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
             builder.HasIndex(us => new { us.UserId, us.Key }).IsUnique();
         });
+
     }
 }

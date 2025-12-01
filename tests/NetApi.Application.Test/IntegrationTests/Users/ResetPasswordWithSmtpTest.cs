@@ -66,32 +66,35 @@ public class ResetPasswordWithSmtpTest(ITestOutputHelper output) : BaseIntegrati
     [Fact]
     public async Task ResetPassword_ShouldSendEmailUsingSmtp()
     {
+        var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(30)).Token; // Timeout after 30 seconds
+
         // Start job service
         using (var scope = Service.CreateScope()) {
             var jobService = scope.ServiceProvider.GetRequiredService<IJobService>();
-            await jobService.StartAsync();
+            await jobService.StartAsync(cancellationToken);
 
             // Clean Mailtrap inbox
             var mailService = scope.ServiceProvider.GetRequiredService<DummyMailtrapClient>();
-            await mailService.CleanInboxAsync();
+            await mailService.CleanInboxAsync(cancellationToken);
         }
 
         // Send reset password request
         using (var scope = Service.CreateScope()) {
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
             var resetPasswordRequest = new ResetPasswordCommand { Email = Admin.Email, User = Admin };
-            var email = await mediator.Send(resetPasswordRequest);
+            var email = await mediator.Send(resetPasswordRequest, cancellationToken);
             email.Should().NotBeNull().And.Be(Admin.Email);
 
             // Wait for job to be processed
             var jobService = scope.ServiceProvider.GetRequiredService<IJobService>();
-            var jobs = await jobService.GetQueuedJobsAsync();
+            var jobs = await jobService.GetQueuedJobsAsync(cancellationToken);
             jobs.Should().HaveCount(1);
-            await jobs[0].WaitForCompletionAsync(); // Wait for the "email" to be "sent"
+
+            await jobs[0].WaitForCompletionAsync(cancellationToken); // Wait for the "email" to be "sent"
 
             // Verify email sent
             var mailService = scope.ServiceProvider.GetRequiredService<DummyMailtrapClient>();
-            (await mailService.GetMessagesAsync()).Should().HaveCount(1);
+            (await mailService.GetMessagesAsync(cancellationToken)).Should().HaveCount(1);
 
             using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var passwordResetEntities = dbContext.PasswordResets.ToList();

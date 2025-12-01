@@ -14,5 +14,5 @@ public class UserSettingEntity : IEntity
     public DateTime UpdatedAt { get; set; }
     public string UpdatedBy { get; set; } = "";
 
-    public UserEntity? User { get; set; }
+    public virtual UserEntity? User { get; set; }
 }

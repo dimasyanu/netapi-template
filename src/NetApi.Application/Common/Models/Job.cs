@@ -20,10 +20,10 @@ public abstract class Job : IDisposable
     /// Waits for the job to complete.
     /// </summary>
     /// <returns></returns>
-    public virtual async Task WaitForCompletionAsync()
+    public virtual async Task WaitForCompletionAsync(CancellationToken cancellationToken = default)
     {
         // Wait for completion signal
-        await CompletionChannel.Reader.ReadAsync();
+        await CompletionChannel.Reader.ReadAsync(cancellationToken);
     }
 
     public void Dispose()

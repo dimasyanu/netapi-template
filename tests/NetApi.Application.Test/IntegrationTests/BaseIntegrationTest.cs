@@ -1,8 +1,10 @@
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NetApi.Application.Common.Contracts;
 using NetApi.Application.Users;
 using NetApi.Domain.Repositories;
+using NetApi.Domain.Roles;
 using NetApi.Domain.Users;
 using NetApi.Domain.Users.ValueObjects;
 using NetApi.Infrastructure.Persistence;
@@ -32,7 +34,7 @@ public abstract class BaseIntegrationTest : IDisposable
         ConfigureServices(serviceCollection);
         Service = serviceCollection.BuildServiceProvider();
 
-        ConfigureAdminUser();
+        ConfigureAdminUser().GetAwaiter().GetResult();
     }
 
     protected virtual void ConfigureServices(IServiceCollection services)
@@ -41,27 +43,54 @@ public abstract class BaseIntegrationTest : IDisposable
         services.AddScoped<IUserRepository, UserRepository>();
     }
 
-    private void ConfigureAdminUser()
+    private async Task ConfigureAdminUser()
     {
-        using var scope = Service.CreateScope();
-        var hasher = scope.ServiceProvider.GetRequiredService<IHashingService>();
-        using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        dbContext.Database.EnsureCreated();
-        Admin = new User {
-            Id = UserId.Create(),
-            FirstName = "Admin",
-            LastName = "User",
-            Username = "admin",
-            Email = EmailAddress.FromString("admin@mail.com"),
-            CreatedAt = DateTime.Now,
-            CreatedBy = "system",
-            UpdatedAt = DateTime.Now,
-            UpdatedBy = "system",
-        };
-        var adminEntity = Admin.ToEntity();
-        adminEntity.PasswordHash = hasher.HashPassword("Admin@123");
-        dbContext.Users.Add(adminEntity);
-        dbContext.SaveChanges();
+        var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(20)).Token; // 20 seconds timeout
+
+        var t = DateTime.Now;
+        using (var scope = Service.CreateScope()) {
+            var hasher = scope.ServiceProvider.GetRequiredService<IHashingService>();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            dbContext.Database.EnsureCreated();
+
+            var adminRole = new Role {
+                Name = "Admin",
+                CreatedAt = DateTime.Now,
+                CreatedBy = "system",
+                UpdatedAt = DateTime.Now,
+                UpdatedBy = "system",
+            };
+
+            Admin = new User {
+                Id = UserId.Create(),
+                FirstName = "Admin",
+                LastName = "User",
+                Username = "admin",
+                Email = EmailAddress.FromString("admin@mail.com"),
+                CreatedAt = DateTime.Now,
+                CreatedBy = "system",
+                UpdatedAt = DateTime.Now,
+                UpdatedBy = "system",
+                Roles = [adminRole]
+            };
+            var adminEntity = Admin.ToEntity();
+            adminEntity.PasswordHash = hasher.HashPassword("Admin@123");
+            dbContext.Users.Add(adminEntity);
+            dbContext.SaveChanges();
+        }
+
+        using (var scope = Service.CreateScope()) {
+            using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var roles = await dbContext.Roles.Include(r => r.Users).ToListAsync(cancellationToken);
+            roles.Should().HaveCount(1).And.ContainSingle(r => r.Name == "Admin");
+            roles[0].Users.Should().HaveCount(1).And.ContainSingle(u => u.Username == "admin");
+
+            var userRoles = await dbContext.UserRoles.ToListAsync(cancellationToken);
+            userRoles.Should().HaveCount(1);
+            userRoles[0].UserId.Should().Be(Admin.Id);
+            userRoles[0].RoleId.Should().Be(roles[0].Id);
+            userRoles[0].AssignedAt.Should().BeCloseTo(t, TimeSpan.FromSeconds(5));
+        }
     }
 
     public virtual void Dispose()
