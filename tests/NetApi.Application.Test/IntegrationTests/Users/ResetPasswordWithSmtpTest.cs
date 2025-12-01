@@ -21,12 +21,13 @@ namespace NetApi.Application.Test.IntegrationTests.Users;
 
 public class ResetPasswordWithSmtpTest(ITestOutputHelper output) : BaseIntegrationTest(output)
 {
+    private const string _schedulerName = "NetApiQuartzScheduler_TestResetPasswordWithSmtp";
+
     protected override void ConfigureServices(IServiceCollection services)
     {
         base.ConfigureServices(services);
 
         services.AddSingleton<IHashingService, HashingService>();
-        services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
         services.AddSingleton<IJobService, QuartzJobService>();
         services.AddSingleton<IMailService, SmtpMailService>();
         services.AddScoped<DummyMailtrapClient>(); // Added DummyMailTrapClient for testing purposes
@@ -47,15 +48,22 @@ public class ResetPasswordWithSmtpTest(ITestOutputHelper output) : BaseIntegrati
         services.AddSingleton(config);
 
         services.AddQuartz(opt => {
+            opt.SchedulerId = _schedulerName;
+            opt.SchedulerName = _schedulerName;
             opt.UseInMemoryStore();
             opt.UseDefaultThreadPool(tp => tp.MaxConcurrency = 5);
         });
         services.AddQuartzHostedService(opt => {
-            opt.AwaitApplicationStarted = false;
             opt.WaitForJobsToComplete = true;
-            opt.StartDelay = null;
         });
     }
+
+    public override void Dispose()
+    {
+        base.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
 
     [Fact]
     public async Task ResetPassword_ShouldSendEmailUsingSmtp()
@@ -76,7 +84,13 @@ public class ResetPasswordWithSmtpTest(ITestOutputHelper output) : BaseIntegrati
             var resetPasswordRequest = new ResetPasswordCommand { Email = Admin.Email, User = Admin };
             var email = await mediator.Send(resetPasswordRequest);
             email.Should().NotBeNull().And.Be(Admin.Email);
-            await Task.Delay(2000); // Wait for the "email" to be "sent"
+
+            // Wait for job to be processed
+            var jobService = scope.ServiceProvider.GetRequiredService<IJobService>();
+            var jobs = await jobService.GetQueuedJobsAsync();
+            jobs.Should().HaveCount(1);
+            await jobs[0].WaitForCompletionAsync(); // Wait for the "email" to be "sent"
+            // await Task.Delay(10000); 
 
             // Verify email sent
             var mailService = scope.ServiceProvider.GetRequiredService<DummyMailtrapClient>();

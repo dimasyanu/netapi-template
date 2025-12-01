@@ -12,19 +12,29 @@ using NetApi.Infrastructure.Persistence;
 using NetApi.Infrastructure.Persistence.Repositories;
 using NetApi.Infrastructure.Persistence.Services;
 using Quartz;
-using Quartz.Impl;
 using Xunit.Abstractions;
 
 namespace NetApi.Application.Test.IntegrationTests.Users;
 
 public class ResetPasswordWithInMemoryMailboxTest(ITestOutputHelper output) : BaseIntegrationTest(output)
 {
+    private const string _schedulerName = "QuartzScheduler_InMemoryMailbox";
+
     protected override void ConfigureServices(IServiceCollection services)
     {
         base.ConfigureServices(services);
 
+        services.AddQuartz(opt => {
+            opt.SchedulerId = _schedulerName;
+            opt.SchedulerName = _schedulerName;
+            opt.UseInMemoryStore();
+            opt.UseDefaultThreadPool(tp => tp.MaxConcurrency = 5);
+        });
+        services.AddQuartzHostedService(opt => {
+            opt.WaitForJobsToComplete = true;
+        });
+
         services.AddSingleton<IHashingService, HashingService>();
-        services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
         services.AddSingleton<IJobService, QuartzJobService>();
         services.AddSingleton<IMailService, DummyMailService>();
         services.AddSingleton<IEmailTemplateManager, DummyEmailTemplateManager>();
@@ -35,15 +45,6 @@ public class ResetPasswordWithInMemoryMailboxTest(ITestOutputHelper output) : Ba
         services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
 
-        services.AddQuartz(opt => {
-            opt.UseInMemoryStore();
-            opt.UseDefaultThreadPool(tp => tp.MaxConcurrency = 5);
-        });
-        services.AddQuartzHostedService(opt => {
-            opt.AwaitApplicationStarted = false;
-            opt.WaitForJobsToComplete = true;
-            opt.StartDelay = null;
-        });
     }
 
     [Fact]

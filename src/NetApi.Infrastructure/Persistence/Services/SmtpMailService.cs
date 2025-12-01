@@ -19,6 +19,7 @@ public class SmtpMailService(AppSetting appSetting) : IMailService
         if (smtpSettings.Port == null) throw new InvalidConfigurationException("SMTP Port is not configured.");
         if (smtpSettings.Username == null) throw new InvalidConfigurationException("SMTP Username is not configured.");
         if (smtpSettings.Password == null) throw new InvalidConfigurationException("SMTP Password is not configured.");
+        if (smtpSettings.From == null) throw new InvalidConfigurationException("SMTP From address is not configured.");
 
         var client = new SmtpClient(smtpSettings.Host) {
             Port = smtpSettings.Port.Value,
@@ -28,7 +29,7 @@ public class SmtpMailService(AppSetting appSetting) : IMailService
 
         // Create mail message
         var mailMessage = new MailMessage {
-            From = new MailAddress(smtpSettings.From?.ToString() ?? smtpSettings.Username),
+            From = new MailAddress(smtpSettings.From),
             Subject = subject,
             Body = body,
             IsBodyHtml = true,
@@ -39,7 +40,10 @@ public class SmtpMailService(AppSetting appSetting) : IMailService
         AddMailAddresses(mailMessage.CC, cc);
         AddMailAddresses(mailMessage.Bcc, bcc);
 
+        var t = DateTime.Now;
         await client.SendMailAsync(mailMessage);
+        var msg = "SMTP Email sent successfully. Elapsed time: " + (DateTime.Now - t).Seconds + " s";
+        Console.WriteLine(msg);
 
         return true;
     }

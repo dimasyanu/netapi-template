@@ -1,5 +1,6 @@
 using MediatR;
 using NetApi.Application.Common.Contracts;
+using NetApi.Application.Common.Exceptions;
 using NetApi.Application.Common.Models;
 using NetApi.Infrastructure.Persistence.Models;
 using Quartz;
@@ -30,7 +31,7 @@ public class QuartzJobService : IJobService
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken = default)
     {
         _scheduler = await _schedulerFactory.GetScheduler(cancellationToken);
         if (_scheduler.IsStarted) return;
@@ -73,22 +74,28 @@ public class QuartzJobService : IJobService
     /// </summary>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    public async Task<IReadOnlyList<Job>> GetQueuedJobs()
+    public async Task<IReadOnlyList<Job>> GetQueuedJobsAsync(CancellationToken cancellationToken = default)
     {
+        await Task.Delay(200, cancellationToken); // Small delay to ensure jobs are registered
+
         var scheduler = await _schedulerFactory.GetScheduler();
         var keys = await scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup());
 
         var results = new List<Job>();
         foreach (var key in keys) {
-            var detail = await scheduler.GetJobDetail(key);
-            if (detail == null
-                || !detail.JobDataMap.ContainsKey("Command")
-                || detail.JobDataMap.Get("Command") == null
-                || detail.JobDataMap.Get("Command") is not Job)
-                continue;
+            var jobExecutionContexts = await scheduler.GetCurrentlyExecutingJobs(cancellationToken);
+            foreach (var executingContext in jobExecutionContexts) {
+                var JobDataMap = executingContext.JobDetail.JobDataMap;
+                var jobInstance = executingContext.JobInstance;
+                if (jobInstance is not Job
+                    || !JobDataMap.ContainsKey("Command")
+                    || JobDataMap.Get("Command") == null
+                    || JobDataMap.Get("Command") is not ICommand)
+                    continue;
 
-            var job = detail.JobDataMap.Get("Command") as Job;
-            results.Add(job!);
+                var job = jobInstance as Job;
+                results.Add(job!);
+            }
         }
         return results;
     }

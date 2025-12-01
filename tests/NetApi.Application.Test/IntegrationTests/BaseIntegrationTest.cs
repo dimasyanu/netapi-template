@@ -58,11 +58,18 @@ public abstract class BaseIntegrationTest : IDisposable
         dbContext.SaveChanges();
     }
 
-    public void Dispose()
+    public virtual void Dispose()
     {
         using var scope = Service.CreateScope();
         using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         dbContext.Database.EnsureDeleted();
+
+        // Dispose all IDisposables in the service provider
+        var disposable = scope.ServiceProvider.GetServices<IDisposable>();
+        if (disposable != null && disposable.Any()) {
+            foreach (var d in disposable) d.Dispose();
+        }
+
         GC.SuppressFinalize(this);
     }
 }

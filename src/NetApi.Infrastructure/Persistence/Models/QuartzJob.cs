@@ -11,7 +11,6 @@ public class QuartzJob<TCommand>(IServiceProvider serviceProvider) : Job<TComman
 
     public async Task Execute(IJobExecutionContext context)
     {
-
         using var scope = _serviceProvider.CreateScope();
         var command = (TCommand)context.JobDetail.JobDataMap.Get("Command")!;
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();

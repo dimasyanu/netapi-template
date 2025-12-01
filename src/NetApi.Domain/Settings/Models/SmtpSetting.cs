@@ -1,5 +1,3 @@
-using NetApi.Domain.Users.ValueObjects;
-
 namespace NetApi.Domain.Settings.Models;
 
 public class SmtpSetting
@@ -10,5 +8,5 @@ public class SmtpSetting
     public string? Password { get; set; }
     public bool? EnableSsl { get; set; }
 
-    public EmailAddress? From { get; set; }
+    public string? From { get; set; }
 }
