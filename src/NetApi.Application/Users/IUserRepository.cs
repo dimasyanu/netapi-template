@@ -1,6 +1,7 @@
 using NetApi.Application.Common.Models;
 using NetApi.Domain.Common.Models;
 using NetApi.Domain.Users;
+using NetApi.Domain.Users.Entities;
 using NetApi.Domain.Users.Models;
 using NetApi.Domain.Users.ValueObjects;
 
@@ -19,7 +20,7 @@ public interface IUserRepository
     /// <param name="filter"></param>
     /// <param name="sortingOption"></param>
     /// <returns></returns>
-    Paginated<User> GetPaginatedList(UserFilter filter, SortingOption sortingOption);
+    Paginated<UserEntity> GetPaginatedList(UserFilter filter, SortingOption sortingOption);
 
     /// <summary>
     /// Gets users based on the provided filter and sorting options.
@@ -28,56 +29,56 @@ public interface IUserRepository
     /// <param name="sortingOption"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<Paginated<User>> GetPaginatedListAsync(UserFilter filter, SortingOption sortingOption, CancellationToken cancellationToken = default);
+    Task<Paginated<UserEntity>> GetPaginatedListAsync(UserFilter filter, SortingOption sortingOption, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new user in the repository.
     /// </summary>
     /// <param name="user"></param>
     /// <returns>The ID of the created user.</returns>
-    UserId Create(User user);
+    UserId Create(UserEntity user);
 
     /// <summary>
     /// Creates a new user in the repository.
     /// </summary>
     /// <param name="user"></param>
     /// <returns>The ID of the created user.</returns>
-    Task<UserId> CreateAsync(User user, CancellationToken cancellationToken = default);
+    Task<UserId> CreateAsync(UserEntity user, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets a user by its ID.
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    User? GetById(UserId id);
+    UserEntity? GetById(UserId id);
 
     /// <summary>
     /// Gets a user by its ID.
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default);
+    Task<UserEntity?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets a user by its username.
     /// </summary>
     /// <param name="username"></param>
     /// <returns></returns>
-    User? GetByUsername(string username);
+    UserEntity? GetByUsername(string username);
 
     /// <summary>
     /// Gets a user by its username.
     /// </summary>
     /// <param name="username"></param>
     /// <returns></returns>
-    Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default);
+    Task<UserEntity?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets a user by its email.
     /// </summary>
     /// <param name="email"></param>
     /// <returns></returns>
-    User? GetByEmail(string email);
+    UserEntity? GetByEmail(string email);
 
     /// <summary>
     /// Gets a user by its email.
@@ -85,35 +86,35 @@ public interface IUserRepository
     /// <param name="email"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<UserEntity?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates an existing user in the repository.
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    User? Update(User user);
+    UserEntity? Update(UserEntity user);
 
     /// <summary>
     /// Updates an existing user in the repository.
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    Task<User?> UpdateAsync(User user, CancellationToken cancellationToken = default);
+    Task<UserEntity?> UpdateAsync(UserEntity user, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes a user from the repository.
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    bool Delete(User user);
+    bool Delete(UserEntity user);
 
     /// <summary>
     /// Deletes a user from the repository.
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    Task<bool> DeleteAsync(User user, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAsync(UserEntity user, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes many users.

@@ -16,9 +16,16 @@ public class GetUsersQueryHandler(IUserRepository repo) : IQueryHandler<GetUsers
         var sortingOption = MapUsersQueryToSortingOption(request);
 
         // Retrieve users from repository
-        var result = await _repo.GetPaginatedListAsync(filter, sortingOption, cancellationToken);
+        var entities = await _repo.GetPaginatedListAsync(filter, sortingOption, cancellationToken);
 
-        return result;
+        var results = entities.Items.Select(x => User.FromEntity(x)).ToList();
+
+        return new Paginated<User> {
+            Items = results,
+            PageSize = entities.PageSize,
+            StartIndex = entities.StartIndex,
+            Total = entities.Total
+        };
     }
 
     /// <summary>

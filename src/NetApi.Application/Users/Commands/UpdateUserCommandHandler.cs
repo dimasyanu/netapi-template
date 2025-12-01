@@ -28,6 +28,6 @@ public class UpdateUserCommandHandler(IUserRepository repo) : ICommandHandler<Up
 
         user = await repo.UpdateAsync(user, cancellationToken)
             ?? throw new InternalErrorException($"Failed to update user with ID '${request.UserId}'");
-        return user;
+        return User.FromEntity(user);
     }
 }

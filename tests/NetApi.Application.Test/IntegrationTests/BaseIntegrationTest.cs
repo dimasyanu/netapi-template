@@ -1,9 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NetApi.Application.Common.Contracts;
+using NetApi.Application.Users;
+using NetApi.Domain.Repositories;
 using NetApi.Domain.Users;
 using NetApi.Domain.Users.ValueObjects;
 using NetApi.Infrastructure.Persistence;
+using NetApi.Infrastructure.Persistence.Services;
 using Xunit.Abstractions;
 
 namespace NetApi.Application.Test.IntegrationTests;
@@ -34,6 +37,8 @@ public abstract class BaseIntegrationTest : IDisposable
 
     protected virtual void ConfigureServices(IServiceCollection services)
     {
+        services.AddScoped<IHashingService, HashingService>();
+        services.AddScoped<IUserRepository, UserRepository>();
     }
 
     private void ConfigureAdminUser()
@@ -52,9 +57,10 @@ public abstract class BaseIntegrationTest : IDisposable
             CreatedBy = "system",
             UpdatedAt = DateTime.Now,
             UpdatedBy = "system",
-            PasswordHash = hasher.HashPassword("Admin@123"),
         };
-        dbContext.Users.Add(Admin);
+        var adminEntity = Admin.ToEntity();
+        adminEntity.PasswordHash = hasher.HashPassword("Admin@123");
+        dbContext.Users.Add(adminEntity);
         dbContext.SaveChanges();
     }
 

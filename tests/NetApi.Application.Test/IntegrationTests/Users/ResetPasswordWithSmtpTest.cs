@@ -27,7 +27,6 @@ public class ResetPasswordWithSmtpTest(ITestOutputHelper output) : BaseIntegrati
     {
         base.ConfigureServices(services);
 
-        services.AddSingleton<IHashingService, HashingService>();
         services.AddSingleton<IJobService, QuartzJobService>();
         services.AddSingleton<IMailService, SmtpMailService>();
         services.AddScoped<DummyMailtrapClient>(); // Added DummyMailTrapClient for testing purposes
@@ -36,7 +35,6 @@ public class ResetPasswordWithSmtpTest(ITestOutputHelper output) : BaseIntegrati
             conf.RegisterServicesFromAssemblyContaining<ResetPasswordCommandHandler>();
         });
         services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
-        services.AddScoped<IUserRepository, UserRepository>();
 
         IConfiguration config = new ConfigurationBuilder()
             .AddJsonFile("appsettings.Test.json", optional: false)
@@ -90,7 +88,6 @@ public class ResetPasswordWithSmtpTest(ITestOutputHelper output) : BaseIntegrati
             var jobs = await jobService.GetQueuedJobsAsync();
             jobs.Should().HaveCount(1);
             await jobs[0].WaitForCompletionAsync(); // Wait for the "email" to be "sent"
-            // await Task.Delay(10000); 
 
             // Verify email sent
             var mailService = scope.ServiceProvider.GetRequiredService<DummyMailtrapClient>();

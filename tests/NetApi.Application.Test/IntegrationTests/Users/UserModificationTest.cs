@@ -20,8 +20,6 @@ public class UserModificationTest(ITestOutputHelper output) : BaseIntegrationTes
     protected override void ConfigureServices(IServiceCollection services)
     {
         base.ConfigureServices(services);
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddSingleton<IHashingService, HashingService>();
 
         services.AddMediatR(conf => conf.RegisterServicesFromAssemblyContaining<UpdateUserCommandHandler>());
     }

@@ -3,7 +3,7 @@ using NetApi.Domain.Users.ValueObjects;
 
 namespace NetApi.Domain.Users.Entities;
 
-public class PasswordReset : IEntity<PasswordResetId>
+public class PasswordResetEntity : IEntity<PasswordResetId>
 {
     public PasswordResetId Id { get; set; } = PasswordResetId.Empty;
     public UserId UserId { get; set; } = UserId.Empty;

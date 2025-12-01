@@ -1,6 +1,10 @@
 namespace NetApi.Domain.Common.Contracts;
 
-public interface IEntity<TKey> where TKey : notnull
+public interface IEntity
+{
+}
+
+public interface IEntity<TKey> : IEntity where TKey : notnull
 {
     TKey Id { get; set; }
 }

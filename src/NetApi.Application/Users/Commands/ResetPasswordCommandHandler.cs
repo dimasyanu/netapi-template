@@ -24,7 +24,7 @@ public class ResetPasswordCommandHandler(IJobService jobService, IPasswordResetR
             throw new BadRequestException([KeyValuePair.Create("Email", new[] { "Email is required." })]);
         }
 
-        var resetEntry = new PasswordReset {
+        var resetEntry = new PasswordResetEntity {
             Id = PasswordResetId.Create(),
             UserId = request.User.Id,
             CreatedAt = DateTime.Now,

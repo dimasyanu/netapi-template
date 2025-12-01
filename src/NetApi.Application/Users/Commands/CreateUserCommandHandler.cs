@@ -31,12 +31,12 @@ public class CreateUserCommandHandler(IUserRepository repo, IHashingService hash
             Email = EmailAddress.FromString(request.Email),
             FirstName = request.FirstName,
             LastName = request.LastName,
-            PasswordHash = _hashingService.HashPassword(request.Password),
             CreatedAt = DateTime.Now,
             CreatedBy = request.User.Username,
             UpdatedAt = DateTime.Now,
             UpdatedBy = request.User.Username,
-        };
+        }.ToEntity();
+        newUser.PasswordHash = _hashingService.HashPassword(request.Password);
 
         var result = await _repo.CreateAsync(newUser, cancellationToken);
         return result;

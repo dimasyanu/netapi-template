@@ -34,7 +34,6 @@ public class ResetPasswordWithInMemoryMailboxTest(ITestOutputHelper output) : Ba
             opt.WaitForJobsToComplete = true;
         });
 
-        services.AddSingleton<IHashingService, HashingService>();
         services.AddSingleton<IJobService, QuartzJobService>();
         services.AddSingleton<IMailService, DummyMailService>();
         services.AddSingleton<IEmailTemplateManager, DummyEmailTemplateManager>();
@@ -43,7 +42,6 @@ public class ResetPasswordWithInMemoryMailboxTest(ITestOutputHelper output) : Ba
             conf.RegisterServicesFromAssemblyContaining<ResetPasswordCommandHandler>();
         });
         services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
-        services.AddScoped<IUserRepository, UserRepository>();
 
     }
 
@@ -55,6 +53,8 @@ public class ResetPasswordWithInMemoryMailboxTest(ITestOutputHelper output) : Ba
             var jobService = scope.ServiceProvider.GetRequiredService<IJobService>();
             await jobService.StartAsync();
         }
+
+        var initialPasswordHash = "";
 
         // Request reset admin password
         using (var scope = Service.CreateScope()) {
@@ -73,6 +73,10 @@ public class ResetPasswordWithInMemoryMailboxTest(ITestOutputHelper output) : Ba
             passwordResetEntities.Should().HaveCount(1);
             passwordResetEntities[0].Id.Should().NotBe(PasswordResetId.Empty);
             passwordResetEntities[0].UsedAt.Should().BeNull();
+
+            var admin = await dbContext.Users.FindAsync(Admin.Id);
+            admin.Should().NotBeNull();
+            initialPasswordHash = admin!.PasswordHash;
         }
 
         // Proceed reset password with wrong token
@@ -104,7 +108,7 @@ public class ResetPasswordWithInMemoryMailboxTest(ITestOutputHelper output) : Ba
             // Verify password updated and reset marked as used
             var userRepo = scope.ServiceProvider.GetRequiredService<IUserRepository>();
             var updatedAdmin = await userRepo.GetByIdAsync(Admin.Id!);
-            updatedAdmin!.PasswordHash.Should().NotBe(Admin.PasswordHash);
+            updatedAdmin!.PasswordHash.Should().NotBe(initialPasswordHash);
 
             var updatedResetEntry = await dbContext.PasswordResets.FindAsync(passwordResetEntity.Id);
             updatedResetEntry!.UsedAt.Should().NotBeNull();

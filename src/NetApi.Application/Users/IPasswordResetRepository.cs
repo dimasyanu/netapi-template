@@ -6,7 +6,7 @@ namespace NetApi.Application.Users;
 
 public interface IPasswordResetRepository
 {
-    Task<PasswordResetId> CreateAsync(PasswordReset passwordReset, CancellationToken cancellationToken = default);
-    Task<PasswordReset?> GetByTokenAsync(string token, CancellationToken cancellationToken = default);
+    Task<PasswordResetId> CreateAsync(PasswordResetEntity passwordReset, CancellationToken cancellationToken = default);
+    Task<PasswordResetEntity?> GetByTokenAsync(string token, CancellationToken cancellationToken = default);
     Task<User> MarkAsUsedAsync(PasswordResetId id, CancellationToken cancellationToken = default);
 }

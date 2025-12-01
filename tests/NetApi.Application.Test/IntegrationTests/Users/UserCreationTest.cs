@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using NetApi.Domain.Repositories;
 using NetApi.Application.Users;
 using NetApi.Domain.Users.ValueObjects;
 using NetApi.Application.Users.Queries;
@@ -8,8 +7,6 @@ using NetApi.Domain.Users;
 using Xunit.Abstractions;
 using NetApi.Application.Users.Commands;
 using NetApi.Infrastructure.Persistence;
-using NetApi.Application.Common.Contracts;
-using NetApi.Infrastructure.Persistence.Services;
 using NetApi.Application.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using FluentAssertions;
@@ -20,9 +17,7 @@ public class UserCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
 {
     protected override void ConfigureServices(IServiceCollection services)
     {
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddSingleton<IHashingService, HashingService>();
-
+        base.ConfigureServices(services);
         services.AddMediatR(conf => {
             conf.RegisterServicesFromAssemblyContaining<GetUserByIdQueryHandler>();
             conf.RegisterServicesFromAssemblyContaining<CreateUserCommandHandler>();
@@ -40,8 +35,8 @@ public class UserCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
             Email = EmailAddress.FromString("testuser@example.com"),
             FirstName = "Test",
             LastName = "User",
-            PasswordHash = "hashedpassword",
-        };
+        }.ToEntity();
+        newUser.PasswordHash = "hashedpassword";
         var userId = await userRepository.CreateAsync(newUser);
 
         // Act

@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using NetApi.Domain.Roles;
+using NetApi.Domain.Roles.Entities;
 using NetApi.Domain.Roles.ValueObjects;
-using NetApi.Domain.Users;
 using NetApi.Domain.Users.Entities;
 using NetApi.Domain.Users.ValueObjects;
 
@@ -9,15 +8,16 @@ namespace NetApi.Infrastructure.Persistence;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public DbSet<User> Users { get; set; }
-    public DbSet<Role> Roles { get; set; }
-    public DbSet<PasswordReset> PasswordResets { get; set; }
+    public DbSet<UserEntity> Users { get; set; }
+    public DbSet<UserSettingEntity> UserSettings { get; set; }
+    public DbSet<RoleEntity> Roles { get; set; }
+    public DbSet<PasswordResetEntity> PasswordResets { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<User>(builder => {
+        modelBuilder.Entity<UserEntity>(builder => {
             builder.Property(u => u.Id).HasConversion(
                 v => v.ToGuid(),
                 v => UserId.FromGuid(v)
@@ -47,7 +47,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             builder.HasIndex(u => u.Username).IsUnique();
         });
 
-        modelBuilder.Entity<Role>(builder => {
+        modelBuilder.Entity<RoleEntity>(builder => {
             builder.Property(r => r.Id)
                 .HasConversion(
                     v => v.Value,
@@ -70,12 +70,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .WithMany(u => u.Roles)
                 .UsingEntity<Dictionary<string, object>>(
                     "UserRoles",
-                    l => l.HasOne<User>().WithMany().HasForeignKey("UserId").HasPrincipalKey(nameof(User.Id)),
-                    r => r.HasOne<Role>().WithMany().HasForeignKey("RoleId").HasPrincipalKey(nameof(Role.Id)),
+                    l => l.HasOne<UserEntity>().WithMany().HasForeignKey("UserId").HasPrincipalKey(nameof(UserEntity.Id)),
+                    r => r.HasOne<RoleEntity>().WithMany().HasForeignKey("RoleId").HasPrincipalKey(nameof(RoleEntity.Id)),
                     j => j.HasKey("UserId", "RoleId"));
         });
 
-        modelBuilder.Entity<PasswordReset>(builder => {
+        modelBuilder.Entity<PasswordResetEntity>(builder => {
             builder.Property(pr => pr.Id).HasConversion(
                 v => v.ToGuid(),
                 v => PasswordResetId.FromGuid(v)
@@ -94,10 +94,36 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             builder.Ignore(pr => pr.IsUsed);
 
             builder
-                .HasOne<User>()
+                .HasOne<UserEntity>()
                 .WithMany()
                 .HasForeignKey(pr => pr.UserId)
                 .HasPrincipalKey(u => u.Id);
+        });
+
+        modelBuilder.Entity<UserSettingEntity>(builder => {
+            // Composite Key: UserId + Key
+            builder.HasKey(us => new { us.UserId, us.Key });
+
+            builder.Property(us => us.UserId).HasConversion(
+                v => v.ToGuid(),
+                v => UserId.FromGuid(v)
+            ).IsRequired();
+            builder.Property(us => us.Key).IsRequired().HasMaxLength(100);
+            builder.Property(us => us.Value).IsRequired().HasMaxLength(500);
+            builder.Property(us => us.CreatedAt).IsRequired();
+            builder.Property(us => us.CreatedBy).IsRequired().HasMaxLength(50);
+            builder.Property(us => us.UpdatedAt).IsRequired();
+            builder.Property(us => us.UpdatedBy).IsRequired().HasMaxLength(50);
+
+            builder.HasKey(us => new { us.UserId, us.Key });
+
+            builder
+                .HasOne(us => us.User)
+                .WithMany(u => u.UserSettings)
+                .HasForeignKey(us => us.UserId)
+                .HasPrincipalKey(u => u.Id);
+
+            builder.HasIndex(us => new { us.UserId, us.Key }).IsUnique();
         });
     }
 }

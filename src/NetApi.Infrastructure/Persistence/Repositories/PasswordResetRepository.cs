@@ -10,13 +10,13 @@ using NetApi.Domain.Users.ValueObjects;
 
 namespace NetApi.Infrastructure.Persistence.Repositories;
 
-public class PasswordResetRepository(ILogger<PasswordResetRepository> logger, AppDbContext dbContext) : BaseRepository<PasswordReset, PasswordResetId, PasswordResetFilter>(logger, dbContext), IPasswordResetRepository
+public class PasswordResetRepository(ILogger<PasswordResetRepository> logger, AppDbContext dbContext) : BaseRepository<PasswordResetEntity, PasswordResetId, PasswordResetFilter>(logger, dbContext), IPasswordResetRepository
 {
     private readonly AppDbContext _dbContext = dbContext;
 
-    protected override IQueryable<PasswordReset> Entities => _dbContext.PasswordResets.AsQueryable();
+    protected override IQueryable<PasswordResetEntity> Entities => _dbContext.PasswordResets.AsQueryable();
 
-    public async Task<PasswordReset?> GetByTokenAsync(string token, CancellationToken cancellationToken = default)
+    public async Task<PasswordResetEntity?> GetByTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         return await Entities.FirstOrDefaultAsync(pr => pr.Token == token, cancellationToken);
     }
@@ -32,18 +32,20 @@ public class PasswordResetRepository(ILogger<PasswordResetRepository> logger, Ap
         resetEntry.MarkAsUsed();
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == resetEntry.UserId, cancellationToken)
+        var entity = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == resetEntry.UserId, cancellationToken)
             ?? throw new NotFoundException("User not found.");
+
+        return User.FromEntity(entity);
     }
 
     public override string[] SortableFields() => ["CreatedAt", "ExpiresAt"];
 
-    protected override IOrderedQueryable<PasswordReset> DefaultSort(IQueryable<PasswordReset> passwordResets)
+    protected override IOrderedQueryable<PasswordResetEntity> DefaultSort(IQueryable<PasswordResetEntity> passwordResets)
     {
         return passwordResets.OrderByDescending(pr => pr.CreatedAt);
     }
 
-    protected override IQueryable<PasswordReset> FilterEntities(IQueryable<PasswordReset> passwordResets, PasswordResetFilter filter)
+    protected override IQueryable<PasswordResetEntity> FilterEntities(IQueryable<PasswordResetEntity> passwordResets, PasswordResetFilter filter)
     {
         // Filter by UserId
         if (filter != null && filter.UserId != null) {
