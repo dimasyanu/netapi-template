@@ -6,7 +6,7 @@ namespace NetApi.Domain.Roles.Entities;
 
 public class RoleEntity : IEntity<RoleId>, ITimestamp, ISoftDelete
 {
-    public RoleId Id { get; set; } = new(0);
+    public RoleId? Id { get; set; }
     public string Name { get; set; } = "";
     public string? Description { get; set; }
 

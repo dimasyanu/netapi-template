@@ -9,7 +9,7 @@ public class Role : IHasEntity<RoleEntity>
 {
     const string Admin = "admin";
 
-    public RoleId Id { get; set; }
+    public RoleId? Id { get; set; }
     public string Name { get; set; } = "";
     public string? Description { get; set; }
 

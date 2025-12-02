@@ -1,3 +1,4 @@
+using NetApi.Application.Common.Models;
 using NetApi.Domain.Roles.Entities;
 using NetApi.Domain.Roles.Models;
 using NetApi.Domain.Roles.ValueObjects;
@@ -10,13 +11,13 @@ public interface IRoleRepository
     /// Gets the list of all roles.
     /// </summary>
     /// <returns></returns>
-    List<RoleEntity> GetList(RoleFilter? filter = null);
+    List<RoleEntity> GetList(RoleFilter? filter = null, SortingOption? sortingOption = null);
 
     /// <summary>
     /// Gets the list of all roles asynchronously.
     /// </summary>
     /// <returns></returns>
-    Task<List<RoleEntity>> GetListAsync(RoleFilter? filter = null, CancellationToken cancellationToken = default);
+    Task<List<RoleEntity>> GetListAsync(RoleFilter? filter = null, SortingOption? sortingOption = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new role in the repository.
@@ -61,6 +62,13 @@ public interface IRoleRepository
     Task<RoleEntity?> GetByNameAsync(string name, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Checks if a role exists by its name.
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    Task<bool> ExistsByNameAsync(string name, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Updates an existing role in the repository.
     /// </summary>
     /// <param name="role"></param>
@@ -74,59 +82,5 @@ public interface IRoleRepository
     /// <returns></returns>
     Task<RoleEntity?> UpdateAsync(RoleEntity role, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Soft deletes a role by its ID.
-    /// </summary>
-    /// <param name="entity"></param>
-    /// <returns></returns>
-    bool SoftDelete(RoleEntity entity);
-
-    /// <summary>
-    /// Soft deletes a role by its ID.
-    /// </summary>
-    /// <param name="entity"></param>
-    /// <returns></returns>
-    Task<bool> SoftDeleteAsync(RoleEntity entity, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Soft deletes multiple roles by their IDs.
-    /// </summary>
-    /// <param name="ids"></param>
-    /// <returns></returns>
-    bool SoftDeleteMany(RoleId[] ids);
-
-    /// <summary>
-    /// Soft deletes multiple roles by their IDs.
-    /// </summary>
-    /// <param name="ids"></param>
-    /// <returns></returns>
-    Task<bool> SoftDeleteManyAsync(RoleId[] ids, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Deletes a role by its ID.
-    /// </summary>
-    /// <param name="entity"></param>
-    /// <returns></returns>
-    bool Delete(RoleEntity entity);
-
-    /// <summary>
-    /// Deletes a role by its ID.
-    /// </summary>
-    /// <param name="entity"></param>
-    /// <returns></returns>
-    Task<bool> DeleteAsync(RoleEntity entity, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Deletes multiple roles by their IDs.
-    /// </summary>
-    /// <param name="ids"></param>
-    /// <returns></returns>
-    bool DeleteMany(RoleId[] ids);
-
-    /// <summary>
-    /// Deletes multiple roles by their IDs.
-    /// </summary>
-    /// <param name="ids"></param>
-    /// <returns></returns>
-    Task<bool> DeleteManyAsync(RoleId[] ids, CancellationToken cancellationToken = default);
+    Task<bool> UpdateManyAsync(RoleEntity[] roles, CancellationToken cancellationToken = default);
 }

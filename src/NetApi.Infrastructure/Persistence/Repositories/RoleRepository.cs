@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using NetApi.Application.Common.Models;
 using NetApi.Application.Roles;
 using NetApi.Domain.Abstractions;
 using NetApi.Domain.Roles.Entities;
@@ -20,48 +21,23 @@ public class RoleRepository(ILogger<RoleRepository> logger, AppDbContext dbConte
     public async Task<RoleEntity?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
         => await Entities.FirstOrDefaultAsync(r => r.Name == name, cancellationToken);
 
-    public List<RoleEntity> GetList(RoleFilter? filter = null)
+    public async Task<bool> ExistsByNameAsync(string name, CancellationToken cancellationToken = default)
+    {
+        return await Entities.CountAsync(r => r.Name == name, cancellationToken) > 0;
+    }
+
+    public List<RoleEntity> GetList(RoleFilter? filter = null, SortingOption? sortingOption = null)
     {
         var query = FilterEntities(Entities, filter ?? new());
-        query = DefaultSort(query);
+        query = GetOrderedEntities(query, sortingOption);
         return [.. query];
     }
 
-    public Task<List<RoleEntity>> GetListAsync(RoleFilter? filter = null, CancellationToken cancellationToken = default)
+    public Task<List<RoleEntity>> GetListAsync(RoleFilter? filter = null, SortingOption? sortingOption = null, CancellationToken cancellationToken = default)
     {
         var query = FilterEntities(Entities, filter ?? new());
-        query = DefaultSort(query);
+        query = GetOrderedEntities(query, sortingOption);
         return query.ToListAsync(cancellationToken);
-    }
-
-    public bool SoftDelete(RoleEntity entity)
-    {
-        entity.DeletedAt = DateTime.Now;
-        DbContext.Roles.Update(entity);
-        return DbContext.SaveChanges() > 0;
-    }
-
-    public async Task<bool> SoftDeleteAsync(RoleEntity entity, CancellationToken cancellationToken = default)
-    {
-        entity.DeletedAt = DateTime.Now;
-        DbContext.Roles.Update(entity);
-        return await DbContext.SaveChangesAsync(cancellationToken) > 0;
-    }
-
-    public bool SoftDeleteMany(RoleId[] ids)
-    {
-        var roles = Entities.Where(r => ids.Contains(r.Id)).ToList();
-        roles.ForEach(role => role.DeletedAt = DateTime.Now);
-        DbContext.Roles.UpdateRange(roles);
-        return DbContext.SaveChanges() > 0;
-    }
-
-    public async Task<bool> SoftDeleteManyAsync(RoleId[] ids, CancellationToken cancellationToken = default)
-    {
-        var roles = await Entities.Where(r => ids.Contains(r.Id)).ToListAsync(cancellationToken);
-        roles.ForEach(role => role.DeletedAt = DateTime.Now);
-        DbContext.Roles.UpdateRange(roles);
-        return await DbContext.SaveChangesAsync(cancellationToken) > 0;
     }
 
     protected override IQueryable<RoleEntity> FilterEntities(IQueryable<RoleEntity> entities, RoleFilter filter)
@@ -78,4 +54,10 @@ public class RoleRepository(ILogger<RoleRepository> logger, AppDbContext dbConte
     {
         return entities.OrderBy(r => r.Name);
     }
+
+    // Disable bulk delete operations for RoleEntity
+    public override bool DeleteMany(RoleEntity[] entities)
+        => throw new NotImplementedException();
+    public override Task<bool> DeleteManyAsync(RoleEntity[] entities, CancellationToken cancellationToken = default)
+        => throw new NotImplementedException();
 }

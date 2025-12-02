@@ -103,30 +103,16 @@ public interface IUserRepository
     Task<UserEntity?> UpdateAsync(UserEntity user, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes a user from the repository.
+    /// Deletes many users.
     /// </summary>
-    /// <param name="user"></param>
+    /// <param name="userIds"></param>
     /// <returns></returns>
-    bool Delete(UserEntity user);
-
-    /// <summary>
-    /// Deletes a user from the repository.
-    /// </summary>
-    /// <param name="user"></param>
-    /// <returns></returns>
-    Task<bool> DeleteAsync(UserEntity user, CancellationToken cancellationToken = default);
+    bool DeleteMany(UserEntity[] userIds);
 
     /// <summary>
     /// Deletes many users.
     /// </summary>
     /// <param name="userIds"></param>
     /// <returns></returns>
-    bool DeleteMany(UserId[] userIds);
-
-    /// <summary>
-    /// Deletes many users.
-    /// </summary>
-    /// <param name="userIds"></param>
-    /// <returns></returns>
-    Task<bool> DeleteManyAsync(UserId[] userIds, CancellationToken cancellationToken = default);
+    Task<bool> DeleteManyAsync(UserEntity[] userIds, CancellationToken cancellationToken = default);
 }

@@ -70,14 +70,14 @@ public abstract class BaseRepository<TEntity, TKey, TFilter>(ILogger logger, App
     {
         DbContext.Set<TEntity>().Add(entity);
         DbContext.SaveChanges();
-        return entity.Id;
+        return entity.Id!;
     }
 
     public async Task<TKey> CreateAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
         DbContext.Set<TEntity>().Add(entity);
         await DbContext.SaveChangesAsync(cancellationToken);
-        return entity.Id;
+        return entity.Id!;
     }
 
     public TEntity? GetById(TKey id)
@@ -104,37 +104,23 @@ public abstract class BaseRepository<TEntity, TKey, TFilter>(ILogger logger, App
         return entity;
     }
 
-    public virtual bool Delete(TEntity entity)
+    public async Task<bool> UpdateManyAsync(TEntity[] entities, CancellationToken cancellationToken = default)
     {
         try {
-            DbContext.Set<TEntity>().Remove(entity);
-            DbContext.SaveChanges();
-        } catch (Exception e) {
-            // Log the exception or handle it as needed
-            _logger.LogError(e, "Error deleting entity with ID {EntityId}", entity.Id);
-            return false;
-        }
-        return true;
-    }
-
-    public virtual async Task<bool> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
-    {
-        try {
-            DbContext.Set<TEntity>().Remove(entity);
+            DbContext.Set<TEntity>().UpdateRange(entities);
             await DbContext.SaveChangesAsync(cancellationToken);
         } catch (Exception e) {
             // Log the exception or handle it as needed
-            _logger.LogError(e, "Error deleting entity with ID {EntityId}", entity.Id);
+            _logger.LogError(e, "Error updating multiple entities asynchronously");
             return false;
         }
         return true;
     }
 
-    public virtual bool DeleteMany(TKey[] ids)
+    public virtual bool DeleteMany(TEntity[] entities)
     {
         try {
-            var entitiesToDelete = DbContext.Set<TEntity>().Where(e => ids.Contains(e.Id)).ToList();
-            DbContext.Set<TEntity>().RemoveRange(entitiesToDelete);
+            DbContext.Set<TEntity>().RemoveRange(entities);
             DbContext.SaveChanges();
         } catch (Exception e) {
             // Log the exception or handle it as needed
@@ -144,15 +130,14 @@ public abstract class BaseRepository<TEntity, TKey, TFilter>(ILogger logger, App
         return true;
     }
 
-    public virtual async Task<bool> DeleteManyAsync(TKey[] ids, CancellationToken cancellationToken = default)
+    public virtual async Task<bool> DeleteManyAsync(TEntity[] entities, CancellationToken cancellationToken = default)
     {
         try {
-            var entitiesToDelete = await DbContext.Set<TEntity>().Where(e => ids.Contains(e.Id)).ToListAsync(cancellationToken);
-            DbContext.Set<TEntity>().RemoveRange(entitiesToDelete);
+            DbContext.Set<TEntity>().RemoveRange(entities);
             await DbContext.SaveChangesAsync(cancellationToken);
         } catch (Exception e) {
             // Log the exception or handle it as needed
-            _logger.LogError(e, "Error deleting multiple entities asynchronously with IDs {EntityIds}", ids);
+            _logger.LogError(e, "Error deleting multiple entities asynchronously");
             return false;
         }
         return true;

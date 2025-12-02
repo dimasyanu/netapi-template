@@ -51,9 +51,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<RoleEntity>(builder => {
             builder.Property(r => r.Id)
                 .HasConversion(
-                    v => v.Value,
+                    v => v!.Value,
                     v => RoleId.Create(v)
-                );
+                )
+                .ValueGeneratedOnAdd();
             builder.Property(r => r.Name).IsRequired().HasMaxLength(50);
             builder.Property(r => r.Description).IsRequired(false).HasMaxLength(255);
             builder.Property(r => r.CreatedAt).IsRequired();

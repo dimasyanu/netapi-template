@@ -1,5 +1,4 @@
 using NetApi.Domain.Common.Contracts;
-using NetApi.Domain.Roles;
 using NetApi.Domain.Roles.Entities;
 using NetApi.Domain.Users.ValueObjects;
 
@@ -10,7 +9,7 @@ public class UserEntity :
     ITimestamp,
     ISoftDelete
 {
-    public UserId Id { get; set; } = UserId.Create();
+    public UserId? Id { get; set; } = UserId.Create();
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
     public string Username { get; set; } = "";
