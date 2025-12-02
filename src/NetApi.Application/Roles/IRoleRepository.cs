@@ -10,7 +10,7 @@ public interface IRoleRepository
     /// Gets the list of all roles.
     /// </summary>
     /// <returns></returns>
-    List<RoleEntity> GetList();
+    List<RoleEntity> GetList(RoleFilter? filter = null);
 
     /// <summary>
     /// Gets the list of all roles asynchronously.
