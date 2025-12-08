@@ -35,7 +35,7 @@ public class UserSettingTest(ITestOutputHelper output) : BaseIntegrationTest(out
             using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             foreach (var (key, value) in initialSettings) {
                 await dbContext.UserSettings.AddAsync(new UserSettingEntity {
-                    UserId = Admin.Id,
+                    UserId = Admin.Id!,
                     Key = key,
                     Value = JsonSerializer.Serialize(value),
                     CreatedAt = DateTime.UtcNow,
@@ -49,7 +49,7 @@ public class UserSettingTest(ITestOutputHelper output) : BaseIntegrationTest(out
 
         using (var scope = Service.CreateScope()) {
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-            var userSettings = await mediator.Send(new GetUserSettingsQuery(Admin.Id));
+            var userSettings = await mediator.Send(new GetUserSettingsQuery(Admin.Id!));
 
             userSettings.Should().NotBeNull();
             userSettings.Theme.Should().Be("dark");
@@ -71,7 +71,7 @@ public class UserSettingTest(ITestOutputHelper output) : BaseIntegrationTest(out
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var userSettingEntities = newSettings.ToEntities();
             foreach (var entity in userSettingEntities) {
-                entity.UserId = Admin.Id;
+                entity.UserId = Admin.Id!;
                 entity.CreatedAt = DateTime.UtcNow;
                 entity.CreatedBy = Admin.Username;
                 entity.UpdatedAt = DateTime.UtcNow;

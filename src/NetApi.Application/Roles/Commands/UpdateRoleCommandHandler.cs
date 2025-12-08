@@ -14,7 +14,7 @@ public class UpdateRoleCommandHandler(IRoleRepository repo) : ICommandHandler<Up
         if (request.User == null)
             throw new UnauthorizedException("Unauthorized access");
 
-        var role = await _repo.GetByIdAsync(request.Id, cancellationToken)
+        var role = await _repo.GetByIdAsync(request.Id, null, cancellationToken)
             ?? throw new NotFoundException($"Role with ID {request.Id} not found.");
 
         role.Name = request.Name.ToSnakeCase();

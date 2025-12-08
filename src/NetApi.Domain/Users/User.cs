@@ -7,7 +7,7 @@ namespace NetApi.Domain.Users;
 
 public class User : IHasEntity<UserEntity>
 {
-    public UserId Id { get; set; } = UserId.Create();
+    public UserId? Id { get; set; } = UserId.Create();
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
     public string Username { get; set; } = "";
@@ -39,7 +39,7 @@ public class User : IHasEntity<UserEntity>
             UpdatedAt = userEntity.UpdatedAt,
             UpdatedBy = userEntity.UpdatedBy,
             IsDeleted = userEntity.DeletedAt.HasValue,
-            Roles = [.. userEntity.Roles?.Select(Role.FromEntity) ?? []],
+            Roles = [.. userEntity.Roles?.Select(x => Role.FromEntity(x, false)) ?? []],
             UserSettings = UserSetting.FromEntities(userEntity.UserSettings)
         };
     }

@@ -1,4 +1,6 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Logging;
 using NetApi.Application.Common.Models;
 using NetApi.Domain.Common.Abstractions;
@@ -66,27 +68,44 @@ public abstract class BaseRepository<TEntity, TKey, TFilter>(ILogger logger, App
         };
     }
 
-    public TKey Create(TEntity entity)
+    public virtual TKey Create(TEntity entity)
     {
         DbContext.Set<TEntity>().Add(entity);
         DbContext.SaveChanges();
         return entity.Id!;
     }
 
-    public async Task<TKey> CreateAsync(TEntity entity, CancellationToken cancellationToken = default)
+    public virtual async Task<TKey> CreateAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
         DbContext.Set<TEntity>().Add(entity);
         await DbContext.SaveChangesAsync(cancellationToken);
         return entity.Id!;
     }
 
-    public TEntity? GetById(TKey id)
+    public TEntity? GetById(TKey id, List<Expression<Func<TEntity, object>>>? includes)
     {
-        return DbContext.Set<TEntity>().Find(id);
+        var query = DbContext.Set<TEntity>();
+        if (includes != null && includes.Count > 0) {
+            IIncludableQueryable<TEntity, object>? includable = null;
+            foreach (var include in includes) {
+                includable = query.Include(include);
+            }
+            return includable?.FirstOrDefault(e => e.Id!.Equals(id));
+        }
+        return query.FirstOrDefault(e => e.Id!.Equals(id));
     }
 
-    public async Task<TEntity?> GetByIdAsync(TKey id, CancellationToken cancellationToken = default)
+    public async Task<TEntity?> GetByIdAsync(TKey id, List<Expression<Func<TEntity, object>>>? includes, CancellationToken cancellationToken = default)
     {
+        var query = DbContext.Set<TEntity>();
+        if (includes != null && includes.Count > 0) {
+            IIncludableQueryable<TEntity, object>? includable = null;
+            foreach (var include in includes) {
+                includable = query.Include(include);
+            }
+            if (includable == null) return null;
+            return await includable.FirstOrDefaultAsync(e => e.Id!.Equals(id), cancellationToken);
+        }
         return await DbContext.Set<TEntity>().FindAsync([id], cancellationToken);
     }
 

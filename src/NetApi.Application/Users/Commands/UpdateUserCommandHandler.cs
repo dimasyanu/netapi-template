@@ -17,7 +17,7 @@ public class UpdateUserCommandHandler(IUserRepository repo) : ICommandHandler<Up
             errors.Add(new KeyValuePair<string, string[]>("FirstName", new[] { "First name is required." }));
         }
 
-        var user = await repo.GetByIdAsync(request.UserId, cancellationToken)
+        var user = await repo.GetByIdAsync(request.UserId, null, cancellationToken)
             ?? throw new NotFoundException($"User with ID '{request.UserId}' not found.");
 
         // Update fields

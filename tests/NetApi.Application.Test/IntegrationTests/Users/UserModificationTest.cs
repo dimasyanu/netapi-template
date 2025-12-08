@@ -9,9 +9,10 @@ using NetApi.Domain.Repositories;
 using NetApi.Domain.Users;
 using NetApi.Domain.Users.ValueObjects;
 using NetApi.Infrastructure.Persistence;
-using NetApi.Infrastructure.Persistence.Services;
 using Microsoft.EntityFrameworkCore;
 using Xunit.Abstractions;
+using NetApi.Application.Roles;
+using NetApi.Infrastructure.Persistence.Repositories;
 
 namespace NetApi.Application.Test.IntegrationTests.Users;
 
@@ -21,12 +22,15 @@ public class UserModificationTest(ITestOutputHelper output) : BaseIntegrationTes
     {
         base.ConfigureServices(services);
 
+        services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddMediatR(conf => conf.RegisterServicesFromAssemblyContaining<UpdateUserCommandHandler>());
     }
 
     [Fact]
     public async Task UpdateUser_ShouldSucceed()
     {
+        var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(30)).Token;
+
         UserId? userId = null;
         User? user = null;
         var email = "newuser@example.com";
@@ -45,9 +49,9 @@ public class UserModificationTest(ITestOutputHelper output) : BaseIntegrationTes
 
             // Arrange
             var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
-            userId = await mediator.Send(command);
+            userId = await mediator.Send(command, cancellationToken);
 
-            user = await mediator.Send(new GetUserByIdQuery(userId.ToGuid()));
+            user = await mediator.Send(new GetUserByIdQuery(userId.ToGuid()), cancellationToken);
 
             await Task.Delay(250); // Ensure timestamp difference
 
@@ -58,14 +62,14 @@ public class UserModificationTest(ITestOutputHelper output) : BaseIntegrationTes
                 LastName = "User1_1",
                 User = user,
             };
-            Func<Task> action = async () => user = await mediator.Send(updateCommand);
+            Func<Task> action = async () => user = await mediator.Send(updateCommand, cancellationToken);
             await action.Should().NotThrowAsync();
         }
 
         using (var scope = Service.CreateScope()) {
             using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var users = await dbContext.Users.ToListAsync();
-            var updatedUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            var users = await dbContext.Users.ToListAsync(cancellationToken);
+            var updatedUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
             updatedUser.Should().NotBeNull();
             updatedUser.FirstName.Should().Be("newuser1_1");
             updatedUser.LastName.Should().Be("User1_1");

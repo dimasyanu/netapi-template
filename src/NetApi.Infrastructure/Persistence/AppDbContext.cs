@@ -20,7 +20,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         modelBuilder.Entity<UserEntity>(builder => {
             builder.Property(u => u.Id).HasConversion(
-                v => v.ToGuid(),
+                v => v!.ToGuid(),
                 v => UserId.FromGuid(v)
             );
             builder.Property(u => u.FirstName).IsRequired().HasMaxLength(50);
@@ -105,7 +105,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         modelBuilder.Entity<PasswordResetEntity>(builder => {
             builder.Property(pr => pr.Id).HasConversion(
-                v => v.ToGuid(),
+                v => v!.ToGuid(),
                 v => PasswordResetId.FromGuid(v)
             ).ValueGeneratedOnAdd();
             builder.Property(pr => pr.UserId).HasConversion(

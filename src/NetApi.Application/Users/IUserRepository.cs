@@ -1,6 +1,7 @@
+using System.Linq.Expressions;
 using NetApi.Application.Common.Models;
 using NetApi.Domain.Common.Models;
-using NetApi.Domain.Users;
+using NetApi.Domain.Roles.Entities;
 using NetApi.Domain.Users.Entities;
 using NetApi.Domain.Users.Models;
 using NetApi.Domain.Users.ValueObjects;
@@ -50,14 +51,14 @@ public interface IUserRepository
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    UserEntity? GetById(UserId id);
+    UserEntity? GetById(UserId id, List<Expression<Func<UserEntity, object>>> includes);
 
     /// <summary>
     /// Gets a user by its ID.
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    Task<UserEntity?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default);
+    Task<UserEntity?> GetByIdAsync(UserId id, List<Expression<Func<UserEntity, object>>>? includes = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets a user by its username.
@@ -87,6 +88,8 @@ public interface IUserRepository
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<UserEntity?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+
+    Task<RoleEntity[]> GetUserRolesAsync(UserId userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates an existing user in the repository.

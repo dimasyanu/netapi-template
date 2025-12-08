@@ -1,4 +1,5 @@
 using NetApi.Application.Common.Abstractions;
+using NetApi.Domain.Roles.ValueObjects;
 using NetApi.Domain.Users.ValueObjects;
 using System.ComponentModel.DataAnnotations;
 
@@ -22,4 +23,6 @@ public class CreateUserCommand : AuthorizedCommand<UserId>
 
     [Required]
     public string ConfirmPassword { get; set; } = "";
+
+    public List<RoleId> Roles { get; set; } = [];
 }

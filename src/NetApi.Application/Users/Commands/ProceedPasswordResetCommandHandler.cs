@@ -34,7 +34,7 @@ public class ProceedPasswordResetCommandHandler(IPasswordResetRepository repo, I
         if (passwordReset.ExpiresAt < DateTime.Now || passwordReset.IsUsed)
             throw new UnauthorizedException("Invalid or expired password reset token.");
 
-        var user = await _userRepo.GetByIdAsync(passwordReset.UserId, cancellationToken)
+        var user = await _userRepo.GetByIdAsync(passwordReset.UserId, null, cancellationToken)
             ?? throw new NotFoundException("User not found.");
 
         // Hash new password
@@ -44,6 +44,8 @@ public class ProceedPasswordResetCommandHandler(IPasswordResetRepository repo, I
         await _userRepo.UpdateAsync(user, cancellationToken);
 
         // Mark password reset as used
+        if (passwordReset.Id == null)
+            throw new BadRequestException("Invalid password reset record.");
         await _repo.MarkAsUsedAsync(passwordReset.Id, cancellationToken);
 
         return true;

@@ -10,6 +10,10 @@ using NetApi.Infrastructure.Persistence;
 using NetApi.Application.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using FluentAssertions;
+using NetApi.Domain.Roles.Entities;
+using NetApi.Domain.Users.Entities;
+using NetApi.Application.Roles;
+using NetApi.Infrastructure.Persistence.Repositories;
 
 namespace NetApi.Application.Test.IntegrationTests.Users;
 
@@ -18,6 +22,9 @@ public class UserCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
     protected override void ConfigureServices(IServiceCollection services)
     {
         base.ConfigureServices(services);
+
+        services.AddScoped<IRoleRepository, RoleRepository>();
+
         services.AddMediatR(conf => {
             conf.RegisterServicesFromAssemblyContaining<GetUserByIdQueryHandler>();
             conf.RegisterServicesFromAssemblyContaining<CreateUserCommandHandler>();
@@ -28,34 +35,77 @@ public class UserCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
     public async Task GetUserById_ShouldSucceed()
     {
         // Arrange
-        using var scope = Service.CreateScope();
-        var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+        var newRole = new RoleEntity {
+            Name = "customer",
+            Description = "Administrator role",
+            CreatedAt = DateTime.Now,
+            CreatedBy = Admin.Username,
+            UpdatedAt = DateTime.Now,
+            UpdatedBy = Admin.Username,
+        };
+        using (var scope = Service.CreateScope()) {
+            using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            dbContext.Roles.Add(newRole);
+            await dbContext.SaveChangesAsync();
+        }
+
+        UserId userId;
         var newUser = new User {
             Username = "testuser",
             Email = EmailAddress.FromString("testuser@example.com"),
             FirstName = "Test",
             LastName = "User",
         }.ToEntity();
-        newUser.PasswordHash = "hashedpassword";
-        var userId = await userRepository.CreateAsync(newUser);
+        using (var scope = Service.CreateScope()) {
+            var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+            newUser.PasswordHash = "hashedpassword";
+            userId = await userRepository.CreateAsync(newUser);
 
-        // Act
-        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-        var request = new GetUserByIdQuery(userId.ToGuid());
-        var user = await mediator.Send(request);
+            var userRole = new UserRoleEntity {
+                UserId = userId,
+                RoleId = newRole.Id ?? throw new Exception("Role ID should not be null"),
+                AssignedAt = DateTime.Now,
+            };
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            dbContext.UserRoles.Add(userRole);
+            await dbContext.SaveChangesAsync();
+        }
 
-        // Assert
-        user.Should().NotBeNull();
-        user.Id.Should().Be(userId);
-        user.Username.Should().Be(newUser.Username);
-        user.Email.Should().Be(newUser.Email);
-        user.FirstName.Should().Be(newUser.FirstName);
-        user.LastName.Should().Be(newUser.LastName);
+        using (var scope = Service.CreateScope()) {
+            // Act
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            var request = new GetUserByIdQuery(userId.ToGuid());
+            var user = await mediator.Send(request);
+
+            // Assert
+            user.Should().NotBeNull();
+            user.Id.Should().Be(userId);
+            user.Username.Should().Be(newUser.Username);
+            user.Email.Should().Be(newUser.Email);
+            user.FirstName.Should().Be(newUser.FirstName);
+            user.LastName.Should().Be(newUser.LastName);
+            user.Roles.Should().ContainSingle()
+                .Which.Name.Should().Be(newRole.Name);
+        }
     }
 
     [Fact]
     public async Task CreateUser_ShouldSucceed()
     {
+        var newRole = new RoleEntity {
+            Name = "customer",
+            Description = "Administrator role",
+            CreatedAt = DateTime.Now,
+            CreatedBy = Admin.Username,
+            UpdatedAt = DateTime.Now,
+            UpdatedBy = Admin.Username,
+        };
+        using (var scope = Service.CreateScope()) {
+            using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            dbContext.Roles.Add(newRole);
+            await dbContext.SaveChangesAsync();
+        }
+
         var command = new CreateUserCommand {
             Username = "newuser",
             Email = "newuser@example.com",
@@ -63,7 +113,8 @@ public class UserCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
             LastName = "User",
             Password = "password123",
             ConfirmPassword = "password123",
-            User = Admin
+            User = Admin,
+            Roles = [newRole.Id!]
         };
 
         UserId? userId = null;
@@ -77,7 +128,7 @@ public class UserCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
         using (var scope = Service.CreateScope()) {
             using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var users = await dbContext.Users.ToListAsync();
-            var createdUser = await dbContext.Users.FindAsync(userId);
+            var createdUser = await dbContext.Users.Include(x => x.Roles).FirstOrDefaultAsync(x => x.Id == userId);
 
             createdUser.Should().NotBeNull();
             createdUser.Username.Should().Be(command.Username);
@@ -89,6 +140,16 @@ public class UserCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
             createdUser.CreatedBy.Should().Be(Admin.Username);
             createdUser.UpdatedAt.Should().BeCloseTo(ts, TimeSpan.FromSeconds(5));
             createdUser.UpdatedBy.Should().Be(Admin.Username);
+            createdUser.Roles.Should().ContainSingle()
+                .Which.Name.Should().Be(newRole.Name);
+        }
+
+        using (var scope = Service.CreateScope()) {
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            var request = new GetUserRolesQuery { UserId = userId };
+            var roles = await mediator.Send(request);
+            roles.Should().ContainSingle()
+                .Which.Name.Should().Be(newRole.Name);
         }
     }
 

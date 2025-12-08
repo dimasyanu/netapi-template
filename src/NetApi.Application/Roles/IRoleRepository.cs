@@ -1,7 +1,10 @@
+using System.Linq.Expressions;
 using NetApi.Application.Common.Models;
 using NetApi.Domain.Roles.Entities;
 using NetApi.Domain.Roles.Models;
 using NetApi.Domain.Roles.ValueObjects;
+using NetApi.Domain.Users.Entities;
+using NetApi.Domain.Users.ValueObjects;
 
 namespace NetApi.Application.Roles;
 
@@ -38,14 +41,14 @@ public interface IRoleRepository
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    RoleEntity? GetById(RoleId id);
+    RoleEntity? GetById(RoleId id, List<Expression<Func<RoleEntity, object>>>? includes = null);
 
     /// <summary>
     /// Gets a role by its ID.
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    Task<RoleEntity?> GetByIdAsync(RoleId id, CancellationToken cancellationToken = default);
+    Task<RoleEntity?> GetByIdAsync(RoleId id, List<Expression<Func<RoleEntity, object>>>? includes = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets a role by its name.
@@ -82,5 +85,20 @@ public interface IRoleRepository
     /// <returns></returns>
     Task<RoleEntity?> UpdateAsync(RoleEntity role, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Updates multiple roles in the repository.
+    /// </summary>
+    /// <param name="roles"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     Task<bool> UpdateManyAsync(RoleEntity[] roles, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Assigns roles to a user.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="userRoles"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<bool> AssignRolesToUserAsync(UserId userId, List<UserRoleEntity> userRoles, CancellationToken cancellationToken = default);
 }

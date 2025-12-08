@@ -10,7 +10,7 @@ public class GetUserByIdQueryHandler(IUserRepository repo) : IQueryHandler<GetUs
 
     public async Task<User> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
-        var userEntity = await _repo.GetByIdAsync(UserId.FromGuid(request.UserId), cancellationToken)
+        var userEntity = await _repo.GetByIdAsync(UserId.FromGuid(request.UserId), [u => u.Roles], cancellationToken)
             ?? throw new KeyNotFoundException($"User with ID {request.UserId} not found.");
         return User.FromEntity(userEntity);
     }

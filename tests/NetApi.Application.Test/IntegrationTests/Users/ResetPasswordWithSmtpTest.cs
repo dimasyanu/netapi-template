@@ -63,7 +63,7 @@ public class ResetPasswordWithSmtpTest(ITestOutputHelper output) : BaseIntegrati
     }
 
 
-    [Fact]
+    [Fact(Skip = "Requires Mailtrap account credentials to run.")]
     public async Task ResetPassword_ShouldSendEmailUsingSmtp()
     {
         var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(30)).Token; // Timeout after 30 seconds

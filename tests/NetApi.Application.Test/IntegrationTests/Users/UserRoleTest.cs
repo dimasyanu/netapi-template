@@ -11,7 +11,6 @@ public class UserRoleTest(ITestOutputHelper output) : BaseIntegrationTest(output
 
         services.AddMediatR(conf => {
             // Todo: conf.RegisterServicesFromAssemblyContaining<AssignRolesToUserCommandHandler>();
-            // Todo: conf.RegisterServicesFromAssemblyContaining<GetUserRolesQueryHandler>();
             // Todo: conf.RegisterServicesFromAssemblyContaining<RemoveRolesFromUserCommandHandler>();
         });
     }

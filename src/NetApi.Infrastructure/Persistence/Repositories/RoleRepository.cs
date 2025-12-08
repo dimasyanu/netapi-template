@@ -6,6 +6,8 @@ using NetApi.Domain.Abstractions;
 using NetApi.Domain.Roles.Entities;
 using NetApi.Domain.Roles.Models;
 using NetApi.Domain.Roles.ValueObjects;
+using NetApi.Domain.Users.Entities;
+using NetApi.Domain.Users.ValueObjects;
 
 namespace NetApi.Infrastructure.Persistence.Repositories;
 
@@ -47,6 +49,10 @@ public class RoleRepository(ILogger<RoleRepository> logger, AppDbContext dbConte
             entities = entities.Where(r => r.Name.ToLower().Contains(searchTerm));
         }
 
+        if (filter is not null && filter.Ids is not null && filter.Ids.Length > 0) {
+            entities = entities.Where(r => filter.Ids!.Contains(r.Id!));
+        }
+
         return entities;
     }
 
@@ -60,4 +66,14 @@ public class RoleRepository(ILogger<RoleRepository> logger, AppDbContext dbConte
         => throw new NotImplementedException();
     public override Task<bool> DeleteManyAsync(RoleEntity[] entities, CancellationToken cancellationToken = default)
         => throw new NotImplementedException();
+
+    public async Task<bool> AssignRolesToUserAsync(UserId userId, List<UserRoleEntity> userRoles, CancellationToken cancellationToken = default)
+    {
+        // await DbContext.UserRoles.AddRangeAsync(userRoles, cancellationToken);
+        foreach (var userRole in userRoles) {
+            await DbContext.UserRoles.AddAsync(userRole, cancellationToken);
+        }
+        await DbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
 }

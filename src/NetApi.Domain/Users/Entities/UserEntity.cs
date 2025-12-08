@@ -25,6 +25,6 @@ public class UserEntity :
     public DateTime? DeletedAt { get; set; }
     public string? DeletedBy { get; set; }
 
-    public virtual IReadOnlyList<RoleEntity>? Roles { get; set; }
-    public virtual IReadOnlyList<UserSettingEntity>? UserSettings { get; set; }
+    public virtual List<RoleEntity> Roles { get; set; } = [];
+    public virtual List<UserSettingEntity> UserSettings { get; set; } = [];
 }

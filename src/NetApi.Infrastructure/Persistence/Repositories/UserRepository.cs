@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using NetApi.Application.Common.Exceptions;
 using NetApi.Application.Users;
 using NetApi.Domain.Abstractions;
 using NetApi.Domain.Common.Contracts;
+using NetApi.Domain.Roles.Entities;
 using NetApi.Domain.Users.Entities;
 using NetApi.Domain.Users.Models;
 using NetApi.Domain.Users.ValueObjects;
@@ -78,5 +80,27 @@ public class UserRepository(ILogger<UserRepository> logger, AppDbContext dbConte
         }
 
         return query;
+    }
+
+    public override UserId Create(UserEntity entity)
+    {
+        DbContext.Users.Add(entity);
+        DbContext.SaveChanges();
+        return entity.Id!;
+    }
+
+    public override async Task<UserId> CreateAsync(UserEntity entity, CancellationToken cancellationToken = default)
+    {
+        await DbContext.Users.AddAsync(entity, cancellationToken);
+        await DbContext.SaveChangesAsync(cancellationToken);
+        return entity.Id!;
+    }
+
+    public async Task<RoleEntity[]> GetUserRolesAsync(UserId userId, CancellationToken cancellationToken = default)
+    {
+        var user = await Entities.Include(u => u.Roles)
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
+            ?? throw new NotFoundException($"User with ID {userId} not found.");
+        return [.. user.Roles ?? []];
     }
 }

@@ -21,7 +21,7 @@ public class Role : IHasEntity<RoleEntity>
 
     public List<User>? Users { get; set; }
 
-    public static Role FromEntity(RoleEntity roleEntity)
+    public static Role FromEntity(RoleEntity roleEntity, bool loadUsers = false)
     {
         return new Role {
             Id = roleEntity.Id,
@@ -32,7 +32,7 @@ public class Role : IHasEntity<RoleEntity>
             UpdatedAt = roleEntity.UpdatedAt,
             UpdatedBy = roleEntity.UpdatedBy,
             IsDeleted = roleEntity.DeletedAt != null,
-            Users = roleEntity.Users?.Select(User.FromEntity).ToList()
+            Users = loadUsers ? roleEntity.Users?.Select(User.FromEntity).ToList() : null
         };
     }
 

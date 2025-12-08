@@ -10,6 +10,6 @@ public class GetRolesQueryHandler(IRoleRepository repo) : IQueryHandler<GetRoles
     public async Task<List<Role>> Handle(GetRolesQuery request, CancellationToken cancellationToken)
     {
         var entities = await _repo.GetListAsync(request.Filter, request.SortingOption, cancellationToken);
-        return [.. entities.Select(Role.FromEntity)];
+        return [.. entities.Select(x => Role.FromEntity(x, false))];
     }
 }
