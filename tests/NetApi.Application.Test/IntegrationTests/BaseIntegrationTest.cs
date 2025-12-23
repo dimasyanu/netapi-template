@@ -19,6 +19,7 @@ public abstract class BaseIntegrationTest : IDisposable
     protected readonly ITestOutputHelper Output;
 
     protected User Admin { get; private set; } = new();
+    protected readonly CancellationToken TestCancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(30)).Token; // 30 seconds timeout
 
     public BaseIntegrationTest(ITestOutputHelper output)
     {

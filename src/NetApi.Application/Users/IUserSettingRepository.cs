@@ -6,5 +6,5 @@ namespace NetApi.Application.Users;
 public interface IUserSettingRepository
 {
     Task<List<UserSettingEntity>> GetByUserIdAsync(UserId userId, CancellationToken cancellationToken = default);
-    Task<bool> UpdateUserSettingsAsync(UserId userId, List<UserSettingEntity> settings, CancellationToken cancellationToken = default);
+    Task<bool> SaveUserSettingsAsync(UserId userId, List<UserSettingEntity> settings, CancellationToken cancellationToken = default);
 }

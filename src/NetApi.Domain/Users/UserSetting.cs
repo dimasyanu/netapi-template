@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using NetApi.Domain.Settings;
 using NetApi.Domain.Users.Entities;
+using NetApi.Domain.Users.ValueObjects;
 
 namespace NetApi.Domain.Users;
 
@@ -38,7 +39,7 @@ public class UserSetting
         return setting;
     }
 
-    public IReadOnlyList<UserSettingEntity> ToEntities()
+    public List<UserSettingEntity> ToEntities(UserId? userId = null)
     {
         var entities = new List<UserSettingEntity>();
         var props = typeof(UserSetting).GetProperties()
@@ -53,6 +54,9 @@ public class UserSetting
                 Key = key,
                 Value = value == null ? null : JsonSerializer.Serialize(value)
             };
+            if (userId != null) {
+                entity.UserId = userId;
+            }
             entities.Add(entity);
         }
 

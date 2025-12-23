@@ -21,7 +21,7 @@ public class UserSettingRepository : IUserSettingRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<bool> UpdateUserSettingsAsync(UserId userId, List<UserSettingEntity> settings, CancellationToken cancellationToken = default)
+    public async Task<bool> SaveUserSettingsAsync(UserId userId, List<UserSettingEntity> settings, CancellationToken cancellationToken = default)
     {
         var existingSettings = await _dbContext.UserSettings
             .Where(us => us.UserId == userId)

@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NetApi.Application.Users;
+using NetApi.Application.Users.Commands;
 using NetApi.Application.Users.Queries;
 using NetApi.Domain.Users.Entities;
 using NetApi.Infrastructure.Persistence;
@@ -68,17 +69,10 @@ public class UserSettingTest(ITestOutputHelper output) : BaseIntegrationTest(out
         };
 
         using (var scope = Service.CreateScope()) {
-            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var userSettingEntities = newSettings.ToEntities();
-            foreach (var entity in userSettingEntities) {
-                entity.UserId = Admin.Id!;
-                entity.CreatedAt = DateTime.UtcNow;
-                entity.CreatedBy = Admin.Username;
-                entity.UpdatedAt = DateTime.UtcNow;
-                entity.UpdatedBy = Admin.Username;
-                await dbContext.UserSettings.AddAsync(entity);
-            }
-            await dbContext.SaveChangesAsync();
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            var command = new SaveUserSettingsCommand { UserId = Admin.Id!, UserSettings = newSettings, User = Admin };
+            Func<Task> act = async () => await mediator.Send(command);
+            await act.Should().NotThrowAsync();
         }
 
         using (var scope = Service.CreateScope()) {
@@ -91,6 +85,52 @@ public class UserSettingTest(ITestOutputHelper output) : BaseIntegrationTest(out
             savedSettings.FirstOrDefault(us => us.Key == "theme")!.Value.Should().Be("\"dark\"");
             savedSettings.FirstOrDefault(us => us.Key == "language")!.Value.Should().Be("\"fr\"");
             savedSettings.FirstOrDefault(us => us.Key == "receive-newsletter")!.Value.Should().Be("false");
+        }
+    }
+
+    [Fact]
+    public async Task UpdateUserSettings_ShouldModifyExistingSettings()
+    {
+        // Arrange initial settings
+        var newSettings = new Domain.Users.UserSetting {
+            Theme = "dark",
+            DefaultLanguage = "fr",
+            ReceiveNewsletter = false
+        };
+
+        using (var scope = Service.CreateScope()) {
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            var command = new SaveUserSettingsCommand { UserId = Admin.Id!, UserSettings = newSettings, User = Admin };
+            Func<Task> act = async () => await mediator.Send(command);
+            await act.Should().NotThrowAsync();
+        }
+
+
+        // Act: Update the "theme" setting
+        newSettings = new Domain.Users.UserSetting {
+            Theme = "light",
+            DefaultLanguage = "en",
+            ReceiveNewsletter = true
+        };
+        using (var scope = Service.CreateScope()) {
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            var command = new SaveUserSettingsCommand { UserId = Admin.Id!, UserSettings = newSettings, User = Admin };
+            Func<Task> act = async () => await mediator.Send(command);
+            await act.Should().NotThrowAsync();
+        }
+
+        // Assert: Verify the "theme" setting is updated
+        using (var scope = Service.CreateScope()) {
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var updatedSetting = await dbContext.UserSettings.ToListAsync(TestCancelToken);
+
+            updatedSetting.Should().HaveCount(3);
+            updatedSetting.FirstOrDefault(us => us.Key == "theme").Should().NotBeNull()
+                .And.Subject.As<UserSettingEntity>().Value.Should().Be(JsonSerializer.Serialize(newSettings.Theme));
+            updatedSetting.FirstOrDefault(us => us.Key == "language").Should().NotBeNull()
+                .And.Subject.As<UserSettingEntity>().Value.Should().Be(JsonSerializer.Serialize(newSettings.DefaultLanguage));
+            updatedSetting.FirstOrDefault(us => us.Key == "receive-newsletter").Should().NotBeNull()
+                .And.Subject.As<UserSettingEntity>().Value.Should().Be(newSettings.ReceiveNewsletter.ToString().ToLower());
         }
     }
 }
