@@ -1,4 +1,4 @@
-namespace NetApi.Domain.Settings.Models;
+namespace NetApi.Infrastructure.Persistence.Models;
 
 public class SmtpSetting
 {

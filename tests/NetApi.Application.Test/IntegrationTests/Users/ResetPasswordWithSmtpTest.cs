@@ -10,6 +10,7 @@ using NetApi.Domain.Repositories;
 using NetApi.Domain.Settings;
 using NetApi.Domain.Users.ValueObjects;
 using NetApi.Infrastructure.Persistence;
+using NetApi.Infrastructure.Persistence.Models;
 using NetApi.Infrastructure.Persistence.Repositories;
 using NetApi.Infrastructure.Persistence.Services;
 using Quartz;
@@ -42,7 +43,7 @@ public class ResetPasswordWithSmtpTest(ITestOutputHelper output) : BaseIntegrati
 
         // Todo: Add serialization option
 
-        services.AddSingleton(config.Get<AppSetting>() ?? throw new InvalidConfigurationException("AppSetting is not configured"));
+        services.AddSingleton(config.Get<AppSettings>() ?? throw new InvalidConfigurationException("AppSetting is not configured"));
         services.AddSingleton(config);
 
         services.AddQuartz(opt => {

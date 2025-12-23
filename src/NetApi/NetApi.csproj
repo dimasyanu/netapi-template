@@ -11,4 +11,12 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../NetApi.Application/NetApi.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models/Config/" />
+  </ItemGroup>
+
 </Project>

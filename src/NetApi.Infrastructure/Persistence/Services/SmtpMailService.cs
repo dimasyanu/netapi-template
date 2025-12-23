@@ -1,15 +1,15 @@
 using System.Net;
 using System.Net.Mail;
 using NetApi.Application.Common.Contracts;
-using NetApi.Domain.Settings;
 using NetApi.Domain.Users.ValueObjects;
+using NetApi.Infrastructure.Persistence.Models;
 using Quartz.Impl.AdoJobStore;
 
 namespace NetApi.Infrastructure.Persistence.Services;
 
-public class SmtpMailService(AppSetting appSetting) : IMailService
+public class SmtpMailService(AppSettings appSetting) : IMailService
 {
-    private readonly AppSetting _appSetting = appSetting;
+    private readonly AppSettings _appSetting = appSetting;
 
     public async Task<bool> SendAsync(EmailAddress[] to, string subject, string body, EmailAddress[]? cc = null, EmailAddress[]? bcc = null, CancellationToken cancellationToken = default)
     {

@@ -106,6 +106,15 @@ public interface IUserRepository
     Task<UserEntity?> UpdateAsync(UserEntity user, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Updates an existing user in the repository.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="updateAction"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<UserEntity?> UpdateAsync(UserId userId, Action<UserEntity> updateAction, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Deletes many users.
     /// </summary>
     /// <param name="userIds"></param>

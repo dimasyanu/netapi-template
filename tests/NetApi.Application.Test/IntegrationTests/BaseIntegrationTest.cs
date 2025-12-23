@@ -15,6 +15,8 @@ namespace NetApi.Application.Test.IntegrationTests;
 
 public abstract class BaseIntegrationTest : IDisposable
 {
+    protected const string AdminPassword = "Admin@123";
+
     protected readonly IServiceProvider Service;
     protected readonly ITestOutputHelper Output;
 
@@ -75,7 +77,7 @@ public abstract class BaseIntegrationTest : IDisposable
                 Roles = [adminRole]
             };
             var adminEntity = Admin.ToEntity();
-            adminEntity.PasswordHash = hasher.HashPassword("Admin@123");
+            adminEntity.PasswordHash = hasher.HashPassword(AdminPassword);
             dbContext.Users.Add(adminEntity);
             dbContext.SaveChanges();
         }
