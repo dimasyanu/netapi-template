@@ -15,10 +15,4 @@
     <ProjectReference Include="../NetApi.Application/NetApi.Application.csproj" />
     <ProjectReference Include="../NetApi.Infrastructure/NetApi.Infrastructure.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Middlewares/" />
-    <Folder Include="Models/Config/" />
-  </ItemGroup>
-
 </Project>

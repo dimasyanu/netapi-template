@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using NetApi.Application.Auth.Commands;
 using NetApi.Application.Common.Contracts;
