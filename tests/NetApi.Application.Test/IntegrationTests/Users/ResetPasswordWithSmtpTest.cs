@@ -6,15 +6,12 @@ using NetApi.Application.Common.Contracts;
 using NetApi.Application.Test.Mocks;
 using NetApi.Application.Users;
 using NetApi.Application.Users.Commands;
-using NetApi.Domain.Repositories;
-using NetApi.Domain.Settings;
 using NetApi.Domain.Users.ValueObjects;
 using NetApi.Infrastructure.Persistence;
 using NetApi.Infrastructure.Persistence.Models;
 using NetApi.Infrastructure.Persistence.Repositories;
 using NetApi.Infrastructure.Persistence.Services;
 using Quartz;
-using Quartz.Impl;
 using Quartz.Impl.AdoJobStore;
 using Xunit.Abstractions;
 

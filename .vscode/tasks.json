@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/NetApi/NetApi.csproj",
+                "${workspaceFolder}/src/NetApi/NetApi.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -23,7 +23,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/NetApi/NetApi.csproj",
+                "${workspaceFolder}/src/NetApi/NetApi.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -37,7 +37,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/NetApi/NetApi.csproj"
+                "${workspaceFolder}/src/NetApi/NetApi.csproj"
             ],
             "problemMatcher": "$msCompile"
         }

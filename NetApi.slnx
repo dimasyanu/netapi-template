@@ -5,16 +5,8 @@
     <Project Path="src/NetApi.Application/NetApi.Application.csproj" />
     <Project Path="src/NetApi.Domain/NetApi.Domain.csproj" />
   </Folder> 
-  <!-- <Folder name="/tests/">
-    <Project Path="tests/NetApi.Tests/NetApi.Tests.csproj" />
-  </Folder>
-  <Folder Name="/Solution Items/">
-    <File Path="Directory.Packages.props" />
-    <File Path="NuGet.config" />
-    <File Path="README.md" />
-  </Folder>
--->
   <Folder Name="/tests/">
     <Project Path="tests/NetApi.Application.Test/NetApi.Application.Test.csproj" />
+    <Project Path="tests/NetApi.RestAPI.Test/NetApi.RestAPI.Test.csproj" />
   </Folder>
 </Solution>

@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../NetApi.Application/NetApi.Application.csproj" />
+    <ProjectReference Include="../NetApi.Infrastructure/NetApi.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

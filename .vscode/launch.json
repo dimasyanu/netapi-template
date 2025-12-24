@@ -9,9 +9,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/NetApi/bin/Debug/net10.0/NetApi.dll",
+            "program": "${workspaceFolder}/src/NetApi/bin/Debug/net10.0/NetApi.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/NetApi",
+            "cwd": "${workspaceFolder}/src/NetApi",
             "console": "internalConsole",
             "stopAtEntry": false,
             "env": {
@@ -29,9 +29,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/NetApi/bin/Debug/net10.0/NetApi.dll",
+            "program": "${workspaceFolder}/src/NetApi/bin/Debug/net10.0/NetApi.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/NetApi",
+            "cwd": "${workspaceFolder}/src/NetApi",
             "console": "internalConsole",
             "stopAtEntry": false,
             "env": {
