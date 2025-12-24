@@ -9,7 +9,7 @@ public class LoginCommandHandler(IAuthService authService) : ICommandHandler<Log
 
     public async Task<LoginResult> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        var user = await _authService.AttemptLoginAsync(request.Email, request.Password, cancellationToken);
+        var user = await _authService.AttemptLoginAsync(request.EmailAddress, request.Password, cancellationToken);
         var result = await _authService.GenerateAuthTokenAsync(user, cancellationToken);
 
         return result;

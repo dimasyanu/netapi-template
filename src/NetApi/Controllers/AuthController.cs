@@ -18,7 +18,11 @@ public class AuthController(IMediator mediator) : ControllerBase
     {
         // Placeholder implementation
         var result = await _mediator.Send(command);
-        return Ok(new Res<LoginResult> { Data = result });
+        return Ok(new Res<LoginResult> {
+            Success = true,
+            Data = result,
+            Message = "Success"
+        });
     }
 
     [Authorize]

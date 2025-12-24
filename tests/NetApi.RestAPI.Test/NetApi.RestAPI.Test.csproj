@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/NetApi/NetApi.csproj" />
+    <ProjectReference Include="../../src/NetApi.Infrastructure/NetApi.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

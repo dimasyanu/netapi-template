@@ -43,7 +43,7 @@ public class JwtLoginTest(ITestOutputHelper output) : BaseIntegrationTest(output
 
         // Act
         var command = new LoginCommand {
-            Email = email,
+            EmailAddress = email,
             Password = password
         };
 
@@ -65,7 +65,7 @@ public class JwtLoginTest(ITestOutputHelper output) : BaseIntegrationTest(output
         // Act
         var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token; // 10 seconds timeout
         var command = new LoginCommand {
-            Email = email.ToString(),
+            EmailAddress = email.ToString(),
             Password = password
         };
 
