@@ -59,7 +59,7 @@ public class JwtLoginTest(ITestOutputHelper output) : BaseIntegrationTest(output
     public async Task Should_Login_With_Valid_Credentials()
     {
         // Arrange
-        var email = Admin.Email;
+        var email = Admin.EmailAddress;
         var password = AdminPassword;
 
         // Act

@@ -1,60 +1,68 @@
-
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using NetApi.Abstractions;
+using NetApi.Application.Users.Commands;
+using NetApi.Application.Users.Queries;
+using NetApi.Models;
 using NetApi.Models.Dtos;
 
 namespace NetApi.Controllers;
 
 [ApiController]
 [Route("v1/Users")]
-public class UserController(IUserService service) : ControllerBase
+public class UserController(IMediator mediator) : BaseRestApiController(mediator)
 {
-    private readonly IUserService _service = service;
-
     [HttpGet]
-    public ActionResult<Result<Paginated<UserDto>>> GetUsers([FromQuery] UserQueryParameters queryParameters)
+    public async Task<ActionResult<Result<Paginated<UserDto>>>> GetUsers([FromQuery] GetUsersQuery query)
     {
-        var users = _service.GetUsersAsync(queryParameters);
-        return Ok(new Result<Paginated<UserDto>> {
-            Success = true,
-            Data = users.Result
-        });
+        // Send query
+        var queryResult = await Mediator.Send(query);
+
+        // Map Dto
+        var result = new Paginated<UserDto> {
+            Items = queryResult.Items.Select(x => UserDto.FromDomainModel(x)),
+            PageSize = queryResult.PageSize,
+            StartIndex = queryResult.StartIndex,
+            TotalCount = queryResult.Total
+        };
+
+        return Success(result);
     }
 
-    [HttpGet("{id}")]
-    public ActionResult<Result<UserDto>> GetUserById(int id)
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<Result<UserDto>>> GetUserById(Guid id)
     {
-        var user = _service.GetUserByIdAsync(id);
-        return Ok(new Result<UserDto> {
-            Success = true,
-            Data = user.Result
-        });
+        // Create a get query
+        var query = new GetUserByIdQuery(id);
+
+        // Send the query
+        var user = await Mediator.Send(query);
+
+        // Map the result into Dto
+        var userDto = UserDto.FromDomainModel(user);
+
+        return Success(userDto, "User retrieved successfully.");
     }
 
     [HttpPost]
-    public ActionResult<Result<CreationDto>> CreateUser([FromBody] CreateUserDto createUserDto)
+    public async Task<ActionResult<Result<CreationDto<Guid>>>> CreateUser([FromBody] CreateUserCommand command)
     {
-        var user = _service.CreateUserAsync(createUserDto);
-        return Created($"Api/Users/{user.Result.Id}", new Result<CreationDto> {
-            Success = true,
-            Data = new CreationDto { Id = user.Result.Id }
-        });
+        var cmdResult = await Mediator.Send(command);
+        return Created(cmdResult.ToGuid());
     }
 
     [HttpPatch("{id}")]
-    public ActionResult<Result<UserDto>> UpdateUser(int id, [FromBody] UpdateUserDto updateUserDto)
+    public async Task<ActionResult<Result<UserDto>>> UpdateUser(int id, [FromBody] UpdateUserCommand command)
     {
-        var user = _service.UpdateUserAsync(id, updateUserDto);
-        return Ok(new Result<UserDto> {
-            Success = true,
-            Data = user.Result
-        });
+        var user = await Mediator.Send(command);
+        var userDto = UserDto.FromDomainModel(user);
+        return Success(userDto);
     }
 
     [HttpDelete("{id}")]
-    public ActionResult<Result<bool>> DeleteUser(int id)
+    public async Task<ActionResult<Result<bool>>> DeleteUser(Guid id)
     {
-        _service.DeleteUserAsync(id);
+        var command = new TrashManyUsersCommand([id]);
+        await Mediator.Send(command);
         return NoContent();
     }
 }

@@ -69,7 +69,7 @@ public abstract class BaseIntegrationTest : IDisposable
                 FirstName = "Admin",
                 LastName = "User",
                 Username = "admin",
-                Email = EmailAddress.FromString("admin@mail.com"),
+                EmailAddress = EmailAddress.FromString("admin@mail.com"),
                 CreatedAt = DateTime.Now,
                 CreatedBy = "system",
                 UpdatedAt = DateTime.Now,

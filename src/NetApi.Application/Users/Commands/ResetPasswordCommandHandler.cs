@@ -17,7 +17,7 @@ public class ResetPasswordCommandHandler(IJobService jobService, IPasswordResetR
         if (request.User == null || request.User.Id == null) {
             throw new UnauthorizedAccessException("User must be authenticated to reset password.");
         }
-        if (request.User.Email != request.Email) {
+        if (request.User.EmailAddress != request.Email) {
             throw new UnauthorizedAccessException("Users can only reset their own password.");
         }
         if (request.Email == EmailAddress.Empty) {

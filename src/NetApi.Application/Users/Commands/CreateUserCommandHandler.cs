@@ -38,7 +38,7 @@ public class CreateUserCommandHandler(IUserRepository repo, IRoleRepository role
 
         var newUser = new User {
             Username = request.Username,
-            Email = EmailAddress.FromString(request.Email),
+            EmailAddress = EmailAddress.FromString(request.Email),
             FirstName = request.FirstName,
             LastName = request.LastName,
             CreatedAt = DateTime.Now,

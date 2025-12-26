@@ -1,6 +1,6 @@
 namespace NetApi.Models.Dtos;
 
-public class CreationDto
+public class CreationDto<TKey>(TKey id)
 {
-    public int Id { get; set; }
+    public TKey Id { get; } = id;
 }

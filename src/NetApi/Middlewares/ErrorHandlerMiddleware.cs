@@ -19,7 +19,7 @@ public class ErrorHandlerMiddleware(ILogger logger) : IExceptionHandler
     {
         _logger.LogError(exception, "An unhandled exception occurred: {Message}", exception.Message);
 
-        var problemDetails = new Res<object> {
+        var problemDetails = new Result<object> {
             Message = "An error occurred while processing your request.",
             Success = false,
             Data = null,
@@ -28,7 +28,7 @@ public class ErrorHandlerMiddleware(ILogger logger) : IExceptionHandler
         if (exception is UnauthorizedAccessException || exception is UnauthorizedException) {
             httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
             problemDetails.Message = exception.Message ?? "Unauthorized access";
-            problemDetails.Errors = ["Unauthorized"];
+            problemDetails.Errors = new Dictionary<string, List<string>> { { "user", ["Unauthorized"] } };
         } else if (exception is BadHttpRequestException) {
             httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             problemDetails.Message = "Bad request: Invalid input or missing parameters.";

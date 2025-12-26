@@ -59,14 +59,14 @@ public class ResetPasswordWithInMemoryMailboxTest(ITestOutputHelper output) : Ba
         // Request reset admin password
         using (var scope = Service.CreateScope()) {
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-            var resetPasswordRequest = new ResetPasswordCommand { Email = Admin.Email, User = Admin };
+            var resetPasswordRequest = new ResetPasswordCommand { Email = Admin.EmailAddress, User = Admin };
             var email = await mediator.Send(resetPasswordRequest);
-            email.Should().NotBeNull().And.Be(Admin.Email);
+            email.Should().NotBeNull().And.Be(Admin.EmailAddress);
             await Task.Delay(100); // Wait for the "email" to be "sent"
 
             // Verify email sent
             var mailService = scope.ServiceProvider.GetRequiredService<DummyMailInboxClient>();
-            (await mailService.GetInboxAsync(Admin.Email)).Should().HaveCount(1);
+            (await mailService.GetInboxAsync(Admin.EmailAddress)).Should().HaveCount(1);
 
             using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var passwordResetEntities = dbContext.PasswordResets.ToList();

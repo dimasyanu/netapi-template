@@ -79,9 +79,9 @@ public class ResetPasswordWithSmtpTest(ITestOutputHelper output) : BaseIntegrati
         // Send reset password request
         using (var scope = Service.CreateScope()) {
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-            var resetPasswordRequest = new ResetPasswordCommand { Email = Admin.Email, User = Admin };
+            var resetPasswordRequest = new ResetPasswordCommand { Email = Admin.EmailAddress, User = Admin };
             var email = await mediator.Send(resetPasswordRequest, cancellationToken);
-            email.Should().NotBeNull().And.Be(Admin.Email);
+            email.Should().NotBeNull().And.Be(Admin.EmailAddress);
 
             // Wait for job to be processed
             var jobService = scope.ServiceProvider.GetRequiredService<IJobService>();

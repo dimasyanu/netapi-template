@@ -11,6 +11,7 @@ using NetApi.Domain.Roles.Entities;
 using NetApi.Domain.Users.Entities;
 using NetApi.Domain.Users.ValueObjects;
 using NetApi.Models;
+using NetApi.Models.Dtos;
 
 namespace NetApi.RestAPI.Test.Auth;
 
@@ -87,7 +88,7 @@ public class AuthorizationTest : IClassFixture<TestingApplicationFactory<Program
             Password = password
         });
         var t = await loginReq.Content.ReadAsStringAsync();
-        var loginResp = await loginReq.Content.ReadFromJsonAsync<Res<LoginResult>>();
+        var loginResp = await loginReq.Content.ReadFromJsonAsync<Result<LoginResult>>();
         loginResp.Should().NotBeNull();
         loginResp.Success.Should().BeTrue();
         loginResp.Data.Should().NotBeNull();
@@ -97,7 +98,12 @@ public class AuthorizationTest : IClassFixture<TestingApplicationFactory<Program
 
         // Act
         var response = await _client.SendAsync(request);
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadFromJsonAsync<Result<UserDto>>();
+        content.Should().NotBeNull();
+        content.Data.Should().NotBeNull();
+        content.Data.Id.Should().NotBeEmpty();
+        content.Data.FirstName.Should().Be(user.FirstName);
+        content.Data.EmailAddress.Should().Be(user.Email.ToString());
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -105,7 +111,6 @@ public class AuthorizationTest : IClassFixture<TestingApplicationFactory<Program
         request = new HttpRequestMessage(HttpMethod.Get, "/v1/Auth/Check");
         request.Headers.Add("Authorization", "Bearer " + loginResp.Data.AccessToken + "_");
         response = await _client.SendAsync(request);
-        content = await response.Content.ReadAsStringAsync();
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }

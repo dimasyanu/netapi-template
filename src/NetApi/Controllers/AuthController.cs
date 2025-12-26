@@ -2,23 +2,23 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NetApi.Application.Auth.Commands;
+using NetApi.Application.Common.Exceptions;
 using NetApi.Domain.Auth.Models;
 using NetApi.Models;
+using NetApi.Models.Dtos;
 
 namespace NetApi.Controllers;
 
 [ApiController]
 [Route("v1/Auth")]
-public class AuthController(IMediator mediator) : ControllerBase
+public class AuthController(IMediator mediator) : BaseRestApiController(mediator)
 {
-    private readonly IMediator _mediator = mediator;
-
     [HttpPost("Login")]
-    public async Task<ActionResult<Res<LoginResult>>> Login([FromBody] LoginCommand command)
+    public async Task<ActionResult<Result<LoginResult>>> Login([FromBody] LoginCommand command)
     {
         // Placeholder implementation
-        var result = await _mediator.Send(command);
-        return Ok(new Res<LoginResult> {
+        var result = await Mediator.Send(command);
+        return Ok(new Result<LoginResult> {
             Success = true,
             Data = result,
             Message = "Success"
@@ -27,8 +27,9 @@ public class AuthController(IMediator mediator) : ControllerBase
 
     [Authorize]
     [HttpGet("Check")]
-    public ActionResult<Res<User>> Check()
+    public ActionResult<Result<UserDto>> Check()
     {
-        return Ok(new Res<User> { Data = new User { Id = 1, Name = "Test User" } });
+        if (CurrentUser == null) throw new UnauthorizedException();
+        return Success(UserDto.FromDomainModel(CurrentUser), "User is authenticated");
     }
 }

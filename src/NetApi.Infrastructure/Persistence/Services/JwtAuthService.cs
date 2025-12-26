@@ -58,7 +58,7 @@ public class JwtAuthService(IUserRepository userRepo, IHashingService hashingSer
         var tokenExpiration = DateTime.Now.AddMinutes(tokenValidityMinutes);
 
         var tokenDescriptor = new SecurityTokenDescriptor {
-            Subject = new ClaimsIdentity([new Claim(ClaimTypes.Email, user.Email.ToString())]),
+            Subject = new ClaimsIdentity([new Claim(ClaimTypes.Email, user.EmailAddress.ToString())]),
             Expires = tokenExpiration,
             Issuer = issuer,
             Audience = audience,

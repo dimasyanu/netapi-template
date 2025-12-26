@@ -52,7 +52,7 @@ public class UserCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
         UserId userId;
         var newUser = new User {
             Username = "testuser",
-            Email = EmailAddress.FromString("testuser@example.com"),
+            EmailAddress = EmailAddress.FromString("testuser@example.com"),
             FirstName = "Test",
             LastName = "User",
         }.ToEntity();
@@ -81,7 +81,7 @@ public class UserCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
             user.Should().NotBeNull();
             user.Id.Should().Be(userId);
             user.Username.Should().Be(newUser.Username);
-            user.Email.Should().Be(newUser.Email);
+            user.EmailAddress.Should().Be(newUser.Email);
             user.FirstName.Should().Be(newUser.FirstName);
             user.LastName.Should().Be(newUser.LastName);
             user.Roles.Should().ContainSingle()

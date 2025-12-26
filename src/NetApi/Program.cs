@@ -2,7 +2,6 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Protocols.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using NetApi.Abstractions;
 using NetApi.Application.Auth;
 using NetApi.Application.Common.Contracts;
 using NetApi.Application.Roles;
@@ -12,7 +11,6 @@ using NetApi.Infrastructure.Persistence.Models;
 using NetApi.Infrastructure.Persistence.Repositories;
 using NetApi.Infrastructure.Persistence.Services;
 using NetApi.Middlewares;
-using NetApi.Services;
 using Quartz;
 // using Quartz.Impl.AdoJobStore;
 
@@ -28,7 +26,6 @@ builder.Services.AddScoped<IUserSettingRepository, UserSettingRepository>();
 builder.Services.AddScoped<IMailService, SmtpMailService>();
 builder.Services.AddScoped<IEmailTemplateManager, EmailTemplateManager>();
 builder.Services.AddScoped<IAuthService, JwtAuthService>();
-builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJobService, QuartzJobService>();
 
 const string schedulerName = "NetApiQuartzScheduler";
