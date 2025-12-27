@@ -34,7 +34,6 @@ public class AuthorizationTest : IClassFixture<TestingApplicationFactory<Program
 
         // Act
         var response = await _client.SendAsync(request);
-        var content = await response.Content.ReadAsStringAsync();
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);

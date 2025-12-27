@@ -1,7 +1,7 @@
 using System.Net;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using NetApi.Application.Common.Exceptions;
+using NetApi.Constants;
 using NetApi.Domain.Users;
 using NetApi.Models;
 using NetApi.Models.Dtos;
@@ -11,12 +11,11 @@ namespace NetApi.Controllers;
 public class BaseRestApiController : ControllerBase
 {
     protected readonly IMediator Mediator;
-    protected User? CurrentUser;
+    protected User? CurrentUser => (User?)(Request.HttpContext.Items[AuthConstant.CURRENT_USER_KEY] ?? null);
 
     public BaseRestApiController(IMediator mediator)
     {
         Mediator = mediator;
-        CurrentUser = Request.HttpContext.Items["CurrentUser"] as User;
     }
 
     protected ActionResult<Result<TData>> Success<TData>(TData data, string message = "Success.")
