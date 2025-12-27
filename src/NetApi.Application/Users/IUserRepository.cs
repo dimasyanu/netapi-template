@@ -79,7 +79,7 @@ public interface IUserRepository
     /// </summary>
     /// <param name="email"></param>
     /// <returns></returns>
-    UserEntity? GetByEmail(string email);
+    UserEntity? GetByEmail(EmailAddress email, List<Expression<Func<UserEntity, object>>>? includes = null);
 
     /// <summary>
     /// Gets a user by its email.
@@ -87,7 +87,7 @@ public interface IUserRepository
     /// <param name="email"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<UserEntity?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<UserEntity?> GetByEmailAsync(EmailAddress email, List<Expression<Func<UserEntity, object>>>? includes = null, CancellationToken cancellationToken = default);
 
     Task<RoleEntity[]> GetUserRolesAsync(UserId userId, CancellationToken cancellationToken = default);
 

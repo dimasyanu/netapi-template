@@ -72,7 +72,7 @@ public class AuthorizationTest : IClassFixture<TestingApplicationFactory<Program
         var password = "Admin@123";
         var user = new UserEntity {
             Username = "admin",
-            Email = EmailAddress.FromString("user@mail.com"),
+            EmailAddress = EmailAddress.FromString("user@mail.com"),
             PasswordHash = hashingSvc.HashPassword(password),
             FirstName = "Admin User",
             LastName = "Admin",
@@ -83,7 +83,7 @@ public class AuthorizationTest : IClassFixture<TestingApplicationFactory<Program
 
         // Login
         var loginReq = await _client.PostAsJsonAsync("/v1/Auth/Login", new LoginCommand {
-            EmailAddress = user.Email.ToString(),
+            EmailAddress = user.EmailAddress.ToString(),
             Password = password
         });
         var t = await loginReq.Content.ReadAsStringAsync();
@@ -102,7 +102,7 @@ public class AuthorizationTest : IClassFixture<TestingApplicationFactory<Program
         content.Data.Should().NotBeNull();
         content.Data.Id.Should().NotBeEmpty();
         content.Data.FirstName.Should().Be(user.FirstName);
-        content.Data.EmailAddress.Should().Be(user.Email.ToString());
+        content.Data.EmailAddress.Should().Be(user.EmailAddress.ToString());
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);

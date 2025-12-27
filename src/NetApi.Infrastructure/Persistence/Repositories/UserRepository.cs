@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NetApi.Application.Common.Exceptions;
@@ -21,7 +22,7 @@ public class UserRepository(ILogger<UserRepository> logger, AppDbContext dbConte
         nameof(UserEntity.FirstName),
         nameof(UserEntity.LastName),
         nameof(UserEntity.Username),
-        nameof(UserEntity.Email),
+        nameof(UserEntity.EmailAddress),
         nameof(UserEntity.CreatedAt),
         nameof(UserEntity.UpdatedAt),
         nameof(UserEntity.DeletedAt),
@@ -36,11 +37,11 @@ public class UserRepository(ILogger<UserRepository> logger, AppDbContext dbConte
     public async Task<UserEntity?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
         => await DbContext.Users.FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
 
-    public UserEntity? GetByEmail(string email)
-        => DbContext.Users.FirstOrDefault(u => u.Email == EmailAddress.FromString(email));
+    public UserEntity? GetByEmail(EmailAddress emailAddress, List<Expression<Func<UserEntity, object>>>? includes = null)
+        => GetEagerLoadedQuery(includes).FirstOrDefault(u => u.EmailAddress == emailAddress);
 
-    public async Task<UserEntity?> GetByEmailAsync(string email, CancellationToken cancellationToken)
-        => await DbContext.Users.FirstOrDefaultAsync(u => u.Email == EmailAddress.FromString(email), cancellationToken);
+    public async Task<UserEntity?> GetByEmailAsync(EmailAddress emailAddress, List<Expression<Func<UserEntity, object>>>? includes = null, CancellationToken cancellationToken = default)
+        => await GetEagerLoadedQuery(includes).FirstOrDefaultAsync(u => u.EmailAddress == emailAddress, cancellationToken);
 
     protected override IQueryable<UserEntity> FilterEntities(IQueryable<UserEntity> entities, UserFilter filter)
     {
@@ -52,13 +53,13 @@ public class UserRepository(ILogger<UserRepository> logger, AppDbContext dbConte
                     u.FirstName.ToLower().Contains(searchTerm)
                     || u.LastName.ToLower().Contains(searchTerm)
                     || u.Username.ToLower().Contains(searchTerm)
-                    || u.Email.ToLower().Contains(searchTerm)
+                    || u.EmailAddress.ToLower().Contains(searchTerm)
                 );
         }
 
         if (!string.IsNullOrEmpty(filter.Email)) {
             var email = filter.Email.ToLower();
-            query = query.Where(u => u.Email.ToLower().Contains(email));
+            query = query.Where(u => u.EmailAddress.ToLower().Contains(email));
         }
 
         if (!string.IsNullOrEmpty(filter.Username)) {
@@ -91,6 +92,12 @@ public class UserRepository(ILogger<UserRepository> logger, AppDbContext dbConte
 
     public override async Task<UserId> CreateAsync(UserEntity entity, CancellationToken cancellationToken = default)
     {
+        if (entity.Roles.Count > 0) {
+            foreach (var role in entity.Roles) {
+                if (role.Id == null) continue;
+                DbContext.Attach(role);
+            }
+        }
         await DbContext.Users.AddAsync(entity, cancellationToken);
         await DbContext.SaveChangesAsync(cancellationToken);
         return entity.Id!;

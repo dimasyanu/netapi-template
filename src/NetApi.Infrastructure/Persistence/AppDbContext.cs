@@ -26,7 +26,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             builder.Property(u => u.FirstName).IsRequired().HasMaxLength(50);
             builder.Property(u => u.LastName).IsRequired().HasMaxLength(50);
             builder.Property(u => u.Username).IsRequired().HasMaxLength(50);
-            builder.Property(u => u.Email)
+            builder.Property(u => u.EmailAddress)
                 .IsRequired()
                 .HasMaxLength(100)
                 .HasConversion(
@@ -44,7 +44,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             builder.Property(u => u.DeletedBy).IsRequired(false).HasMaxLength(50);
 
             builder.HasKey(u => u.Id);
-            builder.HasIndex(u => u.Email).IsUnique();
+            builder.HasIndex(u => u.EmailAddress).IsUnique();
             builder.HasIndex(u => u.Username).IsUnique();
         });
 

@@ -10,6 +10,7 @@ using NetApi.Application.Common.Exceptions;
 using NetApi.Application.Users;
 using NetApi.Domain.Auth.Models;
 using NetApi.Domain.Users;
+using NetApi.Domain.Users.ValueObjects;
 using NetApi.Infrastructure.Persistence.Models;
 
 namespace NetApi.Infrastructure.Persistence.Services;
@@ -31,7 +32,7 @@ public class JwtAuthService(IUserRepository userRepo, IHashingService hashingSer
     /// <exception cref="BadRequestException"></exception>
     public async Task<User> AttemptLoginAsync(string email, string password, CancellationToken cancellationToken = default)
     {
-        var userEntity = await _userRepo.GetByEmailAsync(email, cancellationToken)
+        var userEntity = await _userRepo.GetByEmailAsync(EmailAddress.FromString(email), [], cancellationToken)
             ?? throw new BadRequestException("Invalid email or password.");
 
         if (!_hashingService.VerifyPassword(password, userEntity.PasswordHash))

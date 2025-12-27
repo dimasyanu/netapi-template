@@ -4,6 +4,7 @@ using NetApi.Application.Common.Exceptions;
 using NetApi.Application.Users;
 using NetApi.Constants;
 using NetApi.Domain.Users;
+using NetApi.Domain.Users.ValueObjects;
 
 namespace NetApi.Middlewares;
 
@@ -28,7 +29,7 @@ public class AuthUserMiddleware(IServiceProvider serviceProvider) : IMiddleware
         using (var scope = _serviceProvider.CreateScope()) {
             var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(20)).Token;
             var userRepo = scope.ServiceProvider.GetRequiredService<IUserRepository>();
-            var userEntity = await userRepo.GetByEmailAsync(email, cancellationToken)
+            var userEntity = await userRepo.GetByEmailAsync(EmailAddress.FromString(email), null, cancellationToken)
                 ?? throw new UnauthorizedException();
 
             context.Items.Add(AuthConstant.CURRENT_USER_KEY, User.FromEntity(userEntity));

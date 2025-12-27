@@ -13,7 +13,7 @@ public class UserEntity :
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
     public string Username { get; set; } = "";
-    public EmailAddress Email { get; set; } = EmailAddress.Empty;
+    public EmailAddress EmailAddress { get; set; } = EmailAddress.Empty;
     public string PasswordHash { get; set; } = "";
     public string RefreshToken { get; set; } = "";
     public DateTime? RefreshTokenExpiryTime { get; set; }

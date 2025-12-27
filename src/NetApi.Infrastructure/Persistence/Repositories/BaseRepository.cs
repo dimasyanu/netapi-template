@@ -34,6 +34,17 @@ public abstract class BaseRepository<TEntity, TKey, TFilter>(ILogger logger, App
         };
     }
 
+    protected IQueryable<TEntity> GetEagerLoadedQuery(List<Expression<Func<TEntity, object>>>? includes = null)
+    {
+        var query = DbContext.Set<TEntity>().AsQueryable();
+        if (includes != null && includes.Count > 0) {
+            foreach (var include in includes) {
+                query = query.Include(include);
+            }
+        }
+        return query;
+    }
+
     /// <summary>
     /// Get paginated result of an Entity type
     /// </summary>
@@ -84,29 +95,14 @@ public abstract class BaseRepository<TEntity, TKey, TFilter>(ILogger logger, App
 
     public TEntity? GetById(TKey id, List<Expression<Func<TEntity, object>>>? includes)
     {
-        var query = DbContext.Set<TEntity>();
-        if (includes != null && includes.Count > 0) {
-            IIncludableQueryable<TEntity, object>? includable = null;
-            foreach (var include in includes) {
-                includable = query.Include(include);
-            }
-            return includable?.FirstOrDefault(e => e.Id!.Equals(id));
-        }
-        return query.FirstOrDefault(e => e.Id!.Equals(id));
+        return GetEagerLoadedQuery(includes)
+            .FirstOrDefault(e => e.Id!.Equals(id));
     }
 
     public async Task<TEntity?> GetByIdAsync(TKey id, List<Expression<Func<TEntity, object>>>? includes, CancellationToken cancellationToken = default)
     {
-        var query = DbContext.Set<TEntity>();
-        if (includes != null && includes.Count > 0) {
-            IIncludableQueryable<TEntity, object>? includable = null;
-            foreach (var include in includes) {
-                includable = query.Include(include);
-            }
-            if (includable == null) return null;
-            return await includable.FirstOrDefaultAsync(e => e.Id!.Equals(id), cancellationToken);
-        }
-        return await DbContext.Set<TEntity>().FindAsync([id], cancellationToken);
+        return await GetEagerLoadedQuery(includes)
+            .FirstOrDefaultAsync(e => e.Id!.Equals(id), cancellationToken);
     }
 
     public virtual TEntity? Update(TEntity entity)

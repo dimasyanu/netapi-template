@@ -22,10 +22,10 @@ public class CreateUserCommandHandler(IUserRepository repo, IRoleRepository role
         if (request.Password != request.ConfirmPassword) {
             errors.Add(KeyValuePair.Create("password", new[] { "Password and Confirm Password do not match." }));
         }
-        if ((await _repo.GetByUsernameAsync(request.Username, cancellationToken)) != null) {
+        if (await _repo.GetByUsernameAsync(request.Username, cancellationToken) != null) {
             errors.Add(KeyValuePair.Create("username", new[] { $"Username '{request.Username}' is already taken." }));
         }
-        if ((await _repo.GetByEmailAsync(request.Email, cancellationToken)) != null) {
+        if (await _repo.GetByEmailAsync(EmailAddress.FromString(request.Email), [], cancellationToken) != null) {
             errors.Add(KeyValuePair.Create("email", new[] { $"Email '{request.Email}' is already registered." }));
         }
         var roles = await _roleRepo.GetListAsync(filter: new() {
