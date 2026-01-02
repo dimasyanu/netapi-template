@@ -2,11 +2,10 @@ using NetApi.Domain.Common.Contracts;
 
 namespace NetApi.Domain.Users.ValueObjects;
 
-public sealed record UserId(Guid Value) : IValueObject
+public sealed record LoginAttemptId(Guid Value) : IValueObject
 {
-    public static UserId Empty => new(Guid.Empty);
-    public static UserId FromGuid(Guid id) => new(id);
-    public static UserId New() => new(Guid.NewGuid());
+    public static LoginAttemptId Empty => new(Guid.Empty);
+    public static LoginAttemptId FromGuid(Guid id) => new(id);
 
     public Guid ToGuid() => Value;
     public override string ToString() => Value.ToString();

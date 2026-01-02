@@ -6,7 +6,6 @@ using NetApi.Application.Auth;
 using NetApi.Application.Common.Contracts;
 using NetApi.Application.Roles;
 using NetApi.Application.Users;
-using NetApi.Domain.Repositories;
 using NetApi.Infrastructure.Persistence.Models;
 using NetApi.Infrastructure.Persistence.Repositories;
 using NetApi.Infrastructure.Persistence.Services;

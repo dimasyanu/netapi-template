@@ -1,22 +1,12 @@
-using NetApi.Domain.Common.Abstractions;
+using NetApi.Domain.Common.Contracts;
 
 namespace NetApi.Domain.Roles.ValueObjects;
 
-public sealed class RoleId(short value) : ValueObject
+public sealed record RoleId(ushort Value) : IValueObject
 {
-    public short Value { get; } = value;
+    public static RoleId Empty => new(0);
+    public static RoleId FromShort(ushort value) => new(value);
 
-    public static implicit operator short(RoleId roleId) => roleId.Value;
-
-    public static implicit operator RoleId(short value) => new(value);
-
-    public override IEnumerable<object> GetEqualityComponents()
-    {
-        yield return Value;
-    }
-
-    public static RoleId Create(short value = 0)
-    {
-        return new RoleId(value);
-    }
+    public ushort ToShort() => Value;
+    public bool IsEmpty() => Value == 0;
 }

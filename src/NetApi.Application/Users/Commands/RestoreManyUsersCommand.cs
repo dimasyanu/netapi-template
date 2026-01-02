@@ -2,7 +2,7 @@ using NetApi.Application.Common.Abstractions;
 
 namespace NetApi.Application.Users.Commands;
 
-public class TrashManyUsersCommand : AuthorizedCommand<bool>
+public class RestoreManyUsersCommand : AuthorizedCommand<bool>
 {
     public IEnumerable<Guid> Ids { get; set; } = [];
 }

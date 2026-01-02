@@ -6,7 +6,6 @@ using NetApi.Application.Common.Exceptions;
 using NetApi.Application.Test.Mocks;
 using NetApi.Application.Users;
 using NetApi.Application.Users.Commands;
-using NetApi.Domain.Repositories;
 using NetApi.Domain.Users.ValueObjects;
 using NetApi.Infrastructure.Persistence;
 using NetApi.Infrastructure.Persistence.Repositories;

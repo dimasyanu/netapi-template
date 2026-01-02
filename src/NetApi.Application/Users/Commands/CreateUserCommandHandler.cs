@@ -1,9 +1,7 @@
 using NetApi.Application.Common.Contracts;
 using NetApi.Application.Common.Exceptions;
 using NetApi.Application.Roles;
-using NetApi.Domain.Roles;
 using NetApi.Domain.Users;
-using NetApi.Domain.Users.Entities;
 using NetApi.Domain.Users.ValueObjects;
 
 namespace NetApi.Application.Users.Commands;
@@ -37,6 +35,7 @@ public class CreateUserCommandHandler(IUserRepository repo, IRoleRepository role
         if (errors.Count > 0) throw new BadRequestException(errors);
 
         var newUser = new User {
+            // Id = UserId.New(),
             Username = request.Username,
             EmailAddress = EmailAddress.FromString(request.Email),
             FirstName = request.FirstName,

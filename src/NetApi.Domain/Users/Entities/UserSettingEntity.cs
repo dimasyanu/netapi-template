@@ -5,7 +5,7 @@ namespace NetApi.Domain.Users.Entities;
 
 public class UserSettingEntity : IEntity
 {
-    public UserId UserId { get; set; } = UserId.Create();
+    public UserId UserId { get; set; } = UserId.Empty;
     public string Key { get; set; } = "";
     public string? Value { get; set; }
 

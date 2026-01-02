@@ -190,7 +190,7 @@ public class RoleCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
     [Fact]
     public async Task UpdateRole_NonExistentRole_ShouldFail()
     {
-        var nonExistentRoleId = RoleId.Create(99);
+        var nonExistentRoleId = RoleId.FromShort(99);
         using var scope = Service.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 

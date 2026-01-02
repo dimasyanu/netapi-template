@@ -25,7 +25,7 @@ public class ResetPasswordCommandHandler(IJobService jobService, IPasswordResetR
         }
 
         var resetEntry = new PasswordResetEntity {
-            Id = PasswordResetId.Create(),
+            Id = PasswordResetId.New(),
             UserId = request.User.Id,
             CreatedAt = DateTime.Now,
             ExpiresAt = DateTime.Now.AddHours(1),

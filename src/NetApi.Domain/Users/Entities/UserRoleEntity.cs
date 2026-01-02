@@ -6,8 +6,8 @@ namespace NetApi.Domain.Users.Entities;
 
 public class UserRoleEntity
 {
-    public UserId UserId { get; set; } = UserId.Create();
-    public RoleId RoleId { get; set; } = RoleId.Create();
+    public UserId UserId { get; set; } = UserId.Empty;
+    public RoleId RoleId { get; set; } = RoleId.Empty;
     public DateTime AssignedAt { get; set; } = DateTime.Now;
 
     public virtual RoleEntity? Role { get; set; }

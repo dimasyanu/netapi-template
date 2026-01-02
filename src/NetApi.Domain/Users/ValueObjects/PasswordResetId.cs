@@ -1,31 +1,14 @@
-using NetApi.Domain.Common.Abstractions;
 using NetApi.Domain.Common.Contracts;
 
 namespace NetApi.Domain.Users.ValueObjects;
 
-public class PasswordResetId : ValueObject, IGuidObject
+public sealed record PasswordResetId(Guid Value) : IValueObject
 {
-    private readonly Guid _id;
+    public static PasswordResetId Empty => new(Guid.Empty);
+    public static PasswordResetId FromGuid(Guid id) => new(id);
+    public static PasswordResetId New() => new(Guid.NewGuid());
 
-    private PasswordResetId(Guid id)
-    {
-        _id = id;
-    }
-
-    public static PasswordResetId Empty { get; } = new(Guid.Empty);
-
-    public override IEnumerable<object> GetEqualityComponents()
-    {
-        yield return _id;
-    }
-
-    public static PasswordResetId Create()
-        => new(Guid.NewGuid());
-
-    public static PasswordResetId FromGuid(Guid id)
-        => new(id);
-
-    public Guid ToGuid() => _id;
-    public override string ToString() => _id.ToString();
-    public bool IsEmpty() => _id == Guid.Empty;
+    public Guid ToGuid() => Value;
+    public override string ToString() => Value.ToString();
+    public bool IsEmpty() => Value == Guid.Empty;
 }

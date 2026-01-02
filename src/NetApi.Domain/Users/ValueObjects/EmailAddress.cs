@@ -1,30 +1,21 @@
-using NetApi.Domain.Common.Abstractions;
 using NetApi.Domain.Common.Contracts;
 
 namespace NetApi.Domain.Users.ValueObjects;
 
-public class EmailAddress : ValueObject, IStringObject
+public sealed record EmailAddress(string Value) : IValueObject
 {
-    private readonly string _emailAddress;
-
-    private EmailAddress(string emailAddress)
-    {
-        _emailAddress = emailAddress;
-    }
-
-    public override IEnumerable<object> GetEqualityComponents()
-    {
-        yield return _emailAddress;
-    }
-
-    public static EmailAddress FromString(string emailAddress)
-        => new(emailAddress);
-
     public static EmailAddress Empty => new("");
+    public static EmailAddress FromString(string value) => new(value);
 
-    public override string ToString()
-        => _emailAddress;
+    public override string ToString() => Value;
+    public bool IsEmpty() => string.IsNullOrEmpty(Value);
+}
 
-    public bool IsEmpty()
-        => string.IsNullOrEmpty(_emailAddress);
+public static class EmailAddressExtensions
+{
+    public static string ToLower(this EmailAddress emailAddress)
+        => emailAddress.Value.ToLower();
+
+    public static string ToUpper(this EmailAddress emailAddress)
+        => emailAddress.Value.ToUpper();
 }

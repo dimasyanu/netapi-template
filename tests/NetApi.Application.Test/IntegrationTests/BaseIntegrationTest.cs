@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NetApi.Application.Common.Contracts;
 using NetApi.Application.Users;
-using NetApi.Domain.Repositories;
 using NetApi.Domain.Roles;
 using NetApi.Domain.Users;
 using NetApi.Domain.Users.ValueObjects;
 using NetApi.Infrastructure.Persistence;
+using NetApi.Infrastructure.Persistence.Repositories;
 using NetApi.Infrastructure.Persistence.Services;
 using Xunit.Abstractions;
 
@@ -65,7 +65,7 @@ public abstract class BaseIntegrationTest : IDisposable
             };
 
             Admin = new User {
-                Id = UserId.Create(),
+                Id = UserId.New(),
                 FirstName = "Admin",
                 LastName = "User",
                 Username = "admin",

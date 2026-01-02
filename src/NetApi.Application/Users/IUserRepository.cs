@@ -61,6 +61,14 @@ public interface IUserRepository
     Task<UserEntity?> GetByIdAsync(UserId id, List<Expression<Func<UserEntity, object>>>? includes = null, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Get users by ids
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<IEnumerable<UserEntity>> GetByIdsAsync(IReadOnlyList<UserId> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets a user by its username.
     /// </summary>
     /// <param name="username"></param>
@@ -106,6 +114,14 @@ public interface IUserRepository
     Task<UserEntity?> UpdateAsync(UserEntity user, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Update many users at once
+    /// </summary>
+    /// <param name="users"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<IEnumerable<UserEntity>> UpdateManyAsync(IReadOnlyList<UserEntity> users, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Updates an existing user in the repository.
     /// </summary>
     /// <param name="userId"></param>
@@ -115,16 +131,31 @@ public interface IUserRepository
     Task<UserEntity?> UpdateAsync(UserId userId, Action<UserEntity> updateAction, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes many users.
+    /// Trash many users.
     /// </summary>
     /// <param name="userIds"></param>
     /// <returns></returns>
-    bool DeleteMany(UserEntity[] userIds);
+    bool TrashMany(IReadOnlyList<UserId> userIds, string currentUser);
 
     /// <summary>
-    /// Deletes many users.
+    /// Trash many users.
     /// </summary>
     /// <param name="userIds"></param>
     /// <returns></returns>
-    Task<bool> DeleteManyAsync(UserEntity[] userIds, CancellationToken cancellationToken = default);
+    Task<bool> TrashManyAsync(IReadOnlyList<UserId> ids, string currentUser, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Restores many users
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <returns></returns>
+    bool RestoreMany(IReadOnlyList<UserId> ids, string currentUser);
+
+    /// <summary>
+    /// Trash many users
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<bool> RestoreManyAsync(IReadOnlyList<UserId> ids, string currentUser, CancellationToken cancellationToken = default);
 }

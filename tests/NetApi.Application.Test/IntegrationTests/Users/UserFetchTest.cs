@@ -100,15 +100,6 @@ public class UserFetchTest(ITestOutputHelper output) : BaseIntegrationTest(outpu
             var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
             newUserEntity.PasswordHash = "hashedpassword";
             userId = await userRepository.CreateAsync(newUserEntity);
-
-            // var userRole = new UserRoleEntity {
-            //     UserId = userId,
-            //     RoleId = newRole.Id ?? throw new Exception("Role ID should not be null"),
-            //     AssignedAt = DateTime.Now,
-            // };
-            // var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            // dbContext.UserRoles.Add(userRole);
-            // await dbContext.SaveChangesAsync();
         }
 
         using (var scope = Service.CreateScope()) {

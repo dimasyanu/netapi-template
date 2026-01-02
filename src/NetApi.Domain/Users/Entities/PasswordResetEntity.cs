@@ -5,7 +5,7 @@ namespace NetApi.Domain.Users.Entities;
 
 public class PasswordResetEntity : IEntity<PasswordResetId>
 {
-    public PasswordResetId? Id { get; set; } = PasswordResetId.Empty;
+    public PasswordResetId? Id { get; set; }
     public UserId UserId { get; set; } = UserId.Empty;
     public string Token { get; set; } = "";
     public DateTime ExpiresAt { get; set; }
