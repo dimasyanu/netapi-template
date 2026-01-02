@@ -49,7 +49,10 @@ public class UserModificationTest(ITestOutputHelper output) : BaseIntegrationTes
             var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
             userId = await mediator.Send(command, cancellationToken);
 
-            user = await mediator.Send(new GetUserByIdQuery(userId.ToGuid()), cancellationToken);
+            var query = new GetUserByIdQuery {
+                UserId = userId.ToGuid()
+            };
+            user = await mediator.Send(query, cancellationToken);
 
             await Task.Delay(250); // Ensure timestamp difference
 

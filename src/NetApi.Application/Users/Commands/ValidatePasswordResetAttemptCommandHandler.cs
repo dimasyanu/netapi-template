@@ -12,7 +12,7 @@ public class ValidatePasswordResetAttemptCommandHandler(IPasswordResetRepository
         var token = await _repo.GetByTokenAsync(request.Token, cancellationToken)
             ?? throw new BadRequestException("Invalid or expired token.");
         if (token.ExpiresAt < DateTime.Now || token.IsUsed)
-            throw new NotFoundException("Invalid or expired token.");
+            throw new BadRequestException("Invalid or expired token.");
 
         return token.Token;
     }

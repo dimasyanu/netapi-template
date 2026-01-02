@@ -33,7 +33,9 @@ public class UserFetchTest(ITestOutputHelper output) : BaseIntegrationTest(outpu
         // Act
         using var scope = Service.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-        var request = new GetUserByIdQuery(initialUser.Id.ToGuid());
+        var request = new GetUserByIdQuery {
+            UserId = initialUser.Id.ToGuid()
+        };
         var user = await mediator.Send(request);
 
         // Assert
@@ -56,7 +58,9 @@ public class UserFetchTest(ITestOutputHelper output) : BaseIntegrationTest(outpu
         // Act
         using var scope = Service.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-        var request = new GetUserByEmailAddressQuery(initialUser.EmailAddress.ToString());
+        var request = new GetUserByEmailAddressQuery {
+            EmailAddress = initialUser.EmailAddress.ToString()
+        };
         var user = await mediator.Send(request);
 
         // Assert

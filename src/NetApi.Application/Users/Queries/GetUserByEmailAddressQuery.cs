@@ -8,7 +8,4 @@ public class GetUserByEmailAddressQuery : IQuery<User>
 {
     [Required]
     public string EmailAddress { get; init; } = "";
-
-    public GetUserByEmailAddressQuery() { }
-    public GetUserByEmailAddressQuery(string emailAddress) => EmailAddress = emailAddress;
 }

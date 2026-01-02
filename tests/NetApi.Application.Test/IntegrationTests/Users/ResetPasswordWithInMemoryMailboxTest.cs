@@ -29,9 +29,7 @@ public class ResetPasswordWithInMemoryMailboxTest(ITestOutputHelper output) : Ba
             opt.UseInMemoryStore();
             opt.UseDefaultThreadPool(tp => tp.MaxConcurrency = 5);
         });
-        services.AddQuartzHostedService(opt => {
-            opt.WaitForJobsToComplete = true;
-        });
+        services.AddQuartzHostedService(opt => opt.WaitForJobsToComplete = true);
 
         services.AddSingleton<IJobService, QuartzJobService>();
         services.AddSingleton<IMailService, DummyMailService>();
@@ -78,13 +76,14 @@ public class ResetPasswordWithInMemoryMailboxTest(ITestOutputHelper output) : Ba
             initialPasswordHash = admin!.PasswordHash;
         }
 
+        const string newPassword = "NewP@ssw0rd!";
         // Proceed reset password with wrong token
         using (var scope = Service.CreateScope()) {
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
             var resetPasswordRequest = new ProceedPasswordResetCommand {
                 Token = "invalid-token",
-                ConfirmPassword = "NewP@ssw0rd!",
-                NewPassword = "NewP@ssw0rd!"
+                ConfirmPassword = newPassword,
+                NewPassword = newPassword
             };
             Func<Task> act = async () => { await mediator.Send(resetPasswordRequest); };
             await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Invalid or expired password reset token.");
@@ -96,12 +95,40 @@ public class ResetPasswordWithInMemoryMailboxTest(ITestOutputHelper output) : Ba
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var passwordResetEntity = dbContext.PasswordResets.First();
 
+            var result = false;
             var resetPasswordRequest = new ProceedPasswordResetCommand {
                 Token = passwordResetEntity.Token,
-                ConfirmPassword = "NewP@ssw0rd!",
-                NewPassword = "NewP@ssw0rd!"
+                ConfirmPassword = "123",
+                NewPassword = "123"
             };
-            var result = await mediator.Send(resetPasswordRequest);
+
+            // Short password
+            Func<Task> action = async () => result = await mediator.Send(resetPasswordRequest);
+            await action.Should().ThrowAsync<BadRequestException>();
+
+            // All-letter characters
+            resetPasswordRequest.ConfirmPassword = "Testing";
+            resetPasswordRequest.NewPassword = "Testing";
+            action = async () => result = await mediator.Send(resetPasswordRequest);
+            await action.Should().ThrowAsync<BadRequestException>();
+
+            // All lowercase characters
+            resetPasswordRequest.ConfirmPassword = "testing";
+            resetPasswordRequest.NewPassword = "testing";
+            action = async () => result = await mediator.Send(resetPasswordRequest);
+            await action.Should().ThrowAsync<BadRequestException>();
+
+            // All lowercase characters
+            resetPasswordRequest.ConfirmPassword = newPassword;
+            resetPasswordRequest.NewPassword = newPassword + "_";
+            action = async () => result = await mediator.Send(resetPasswordRequest);
+            await action.Should().ThrowAsync<BadRequestException>();
+
+            // Valid password
+            resetPasswordRequest.ConfirmPassword = newPassword;
+            resetPasswordRequest.NewPassword = newPassword;
+            action = async () => result = await mediator.Send(resetPasswordRequest);
+            await action.Should().NotThrowAsync();
             result.Should().BeTrue();
 
             // Verify password updated and reset marked as used
@@ -111,6 +138,76 @@ public class ResetPasswordWithInMemoryMailboxTest(ITestOutputHelper output) : Ba
 
             var updatedResetEntry = await dbContext.PasswordResets.FindAsync(passwordResetEntity.Id);
             updatedResetEntry!.UsedAt.Should().NotBeNull();
+        }
+    }
+
+    [Fact]
+    public async Task ValidatePasswordResetAttempt_InvalidToken()
+    {
+        using var scope = Service.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var cmd = new ValidatePasswordResetAttemptCommand { Token = "an_invalid_token" };
+        Func<Task> action = async () => await mediator.Send(cmd);
+        await action.Should().ThrowAsync<BadRequestException>();
+    }
+
+    [Fact]
+    public async Task ValidatePasswordResetAttempt_ExpiredToken()
+    {
+        var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(20)).Token;
+
+        // Start job service
+        using (var scope = Service.CreateScope()) {
+            var jobService = scope.ServiceProvider.GetRequiredService<IJobService>();
+            await jobService.StartAsync();
+        }
+        using (var scope = Service.CreateScope()) {
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            var resetPasswordRequest = new ResetPasswordCommand { Email = Admin.EmailAddress, User = Admin };
+            await mediator.Send(resetPasswordRequest);
+        }
+
+        var token = "";
+        using (var scope = Service.CreateScope()) {
+            using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var passwordReset = dbContext.PasswordResets.Single();
+            passwordReset.ExpiresAt = DateTime.Now.AddMinutes(-1);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            token = passwordReset.Token;
+        }
+
+        using (var scope = Service.CreateScope()) {
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            var cmd = new ValidatePasswordResetAttemptCommand { Token = token };
+            Func<Task> action = async () => await mediator.Send(cmd);
+            await action.Should().ThrowAsync<BadRequestException>();
+        }
+    }
+
+    [Fact]
+    public async Task ValidatePasswordResetAttempt_Success()
+    {
+        var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(20)).Token;
+
+        // Start job service
+        using (var scope = Service.CreateScope()) {
+            var jobService = scope.ServiceProvider.GetRequiredService<IJobService>();
+            await jobService.StartAsync();
+        }
+        using (var scope = Service.CreateScope()) {
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            var resetPasswordRequest = new ResetPasswordCommand { Email = Admin.EmailAddress, User = Admin };
+            await mediator.Send(resetPasswordRequest, cancellationToken);
+        }
+
+        using (var scope = Service.CreateScope()) {
+            using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var passwordReset = dbContext.PasswordResets.Single();
+
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            var cmd = new ValidatePasswordResetAttemptCommand { Token = passwordReset.Token };
+            Func<Task> action = async () => await mediator.Send(cmd);
+            await action.Should().NotThrowAsync();
         }
     }
 }
