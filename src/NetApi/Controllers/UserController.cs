@@ -32,7 +32,7 @@ public class UserController(IMediator mediator) : BaseRestApiController(mediator
     public async Task<ActionResult<Result<UserDto>>> GetUserById(Guid id)
     {
         // Create a get query
-        var query = new GetUserByIdQuery(id);
+        var query = new GetUserByIdQuery { UserId = id };
 
         // Send the query
         var user = await Mediator.Send(query);
@@ -61,7 +61,7 @@ public class UserController(IMediator mediator) : BaseRestApiController(mediator
     [HttpDelete("{id}")]
     public async Task<ActionResult<Result<bool>>> DeleteUser(Guid id)
     {
-        var command = new TrashManyUsersCommand([id]);
+        var command = new TrashManyUsersCommand { Ids = [id], User = CurrentUser };
         await Mediator.Send(command);
         return NoContent();
     }

@@ -16,15 +16,6 @@ namespace NetApi.Application.Test.IntegrationTests.Users;
 
 public class UserCreationTest(ITestOutputHelper output) : BaseIntegrationTest(output)
 {
-    public static RoleEntity DummyRoleEntity(string creator) => new() {
-        Name = "customer",
-        Description = "Administrator role",
-        CreatedAt = DateTime.Now,
-        CreatedBy = creator,
-        UpdatedAt = DateTime.Now,
-        UpdatedBy = creator,
-    };
-
     protected override void ConfigureServices(IServiceCollection services)
     {
         base.ConfigureServices(services);
