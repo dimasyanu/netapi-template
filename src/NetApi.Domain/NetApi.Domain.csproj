@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Settings/Models/" />
+    <Compile Remove="Settings\**" />
+    <EmbeddedResource Remove="Settings\**" />
+    <None Remove="Settings\**" />
   </ItemGroup>
 
 </Project>

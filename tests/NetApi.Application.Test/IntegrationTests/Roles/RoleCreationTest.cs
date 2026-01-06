@@ -2,14 +2,20 @@ using FluentAssertions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using NetApi.Application.Common.Contracts;
 using NetApi.Application.Common.Exceptions;
 using NetApi.Application.Common.Extensions;
 using NetApi.Application.Common.Models;
+using NetApi.Application.Common.PipelineBehaviors;
 using NetApi.Application.Roles;
 using NetApi.Application.Roles.Commands;
 using NetApi.Application.Roles.Queries;
+using NetApi.Domain.Common.Extensions;
 using NetApi.Domain.Roles.Entities;
 using NetApi.Domain.Roles.ValueObjects;
+using NetApi.Domain.Users;
+using NetApi.Domain.Users.Entities;
+using NetApi.Domain.Users.ValueObjects;
 using NetApi.Infrastructure.Persistence;
 using NetApi.Infrastructure.Persistence.Repositories;
 using Xunit.Abstractions;
@@ -30,6 +36,8 @@ public class RoleCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
             conf.RegisterServicesFromAssemblyContaining<UpdateRoleCommandHandler>();
             conf.RegisterServicesFromAssemblyContaining<SoftDeleteRoleCommandHandler>();
             conf.RegisterServicesFromAssemblyContaining<RestoreRoleCommandHandler>();
+
+            conf.AddOpenBehavior(typeof(AuthorizedRequestBehavior<,>));
         });
     }
 
@@ -39,17 +47,12 @@ public class RoleCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
         var roleName = string.Concat("TestRole_", Guid.NewGuid().ToString("N").AsSpan(0, 8));
 
         using (var scope = Service.CreateScope()) {
-
             // Create Role
             using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var newRole = new RoleEntity {
                 Name = roleName.ToSnakeCase(),
                 Description = "A role created during integration testing.",
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = "IntegrationTest",
-                UpdatedAt = DateTime.UtcNow,
-                UpdatedBy = "IntegrationTest"
-            };
+            }.SetCreated(Admin.EmailAddress.ToString());
             dbContext.Roles.Add(newRole);
             await dbContext.SaveChangesAsync();
         }
@@ -73,6 +76,60 @@ public class RoleCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
     }
 
     [Fact]
+    public async Task CreateRole_WithUnauthorizedPermission_ShouldFail()
+    {
+        var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(20)).Token;
+        var adminUser = Admin.EmailAddress.ToString();
+        var customerRole = new RoleEntity {
+            Name = "customer",
+            Description = "A role for testing"
+        }.SetCreated(adminUser);
+        var newUser = new UserEntity {
+            FirstName = "New Customer",
+            EmailAddress = EmailAddress.FromString("new_customer@mail.com"),
+            Roles = [customerRole]
+        }.SetCreated(adminUser);
+        var customerPassword = "abcde";
+
+        using (var scope = Service.CreateScope()) {
+            var hashingService = scope.ServiceProvider.GetRequiredService<IHashingService>();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            newUser.PasswordHash = hashingService.HashPassword(customerPassword);
+            await dbContext.Users.AddAsync(newUser, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        var customerUser = User.FromEntity(newUser);
+        var createRoleCmd = new CreateRoleCommand {
+            Name = "editor",
+            Description = "Another role"
+        };
+        using (var scope = Service.CreateScope()) {
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            Func<Task> action = async () => await mediator.Send(createRoleCmd, cancellationToken);
+            await action.Should().ThrowAsync<UnauthorizedException>();
+
+            // Create a role with customer role permissions - should fail
+            createRoleCmd = new() {
+                Name = createRoleCmd.Name,
+                Description = createRoleCmd.Description,
+                User = customerUser,
+            };
+            action = async () => await mediator.Send(createRoleCmd, cancellationToken);
+            await action.Should().ThrowAsync<UnauthorizedException>();
+
+            // Create a role with admin role permission - should success
+            createRoleCmd = new() {
+                Name = createRoleCmd.Name,
+                Description = createRoleCmd.Description,
+                User = Admin,
+            };
+            action = async () => await mediator.Send(createRoleCmd, cancellationToken);
+            await action.Should().NotThrowAsync();
+        }
+    }
+
+    [Fact]
     public async Task CreateRole_ShouldSucceed()
     {
         var roleName = string.Concat("TestRole_", Guid.NewGuid().ToString("N").AsSpan(0, 8));
@@ -84,7 +141,8 @@ public class RoleCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
             // Create Role
             var createCommand = new CreateRoleCommand {
                 Name = roleName,
-                Description = "A role created during integration testing."
+                Description = "A role created during integration testing.",
+                User = Admin
             };
             var createdRole = await mediator.Send(createCommand);
             createdRole.Should().NotBeNull();
@@ -117,7 +175,8 @@ public class RoleCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
             // Attempt to Create Role with Duplicate Name
             var createCommand = new CreateRoleCommand {
                 Name = roleName,
-                Description = "Attempting to create a duplicate role."
+                Description = "Attempting to create a duplicate role.",
+                User = Admin
             };
 
             Func<Task> act = async () => { await mediator.Send(createCommand); };
@@ -137,7 +196,8 @@ public class RoleCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
         // Attempt to Create Role with Invalid Name
         var createCommand = new CreateRoleCommand {
             Name = invalidRoleName,
-            Description = "Attempting to create a role with invalid name."
+            Description = "Attempting to create a role with invalid name.",
+            User = Admin
         };
         Func<Task> act = async () => { await mediator.Send(createCommand); };
         await act.Should().ThrowAsync<BadRequestException>()

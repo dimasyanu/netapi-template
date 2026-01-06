@@ -12,6 +12,7 @@ public class Role : IHasEntity<RoleEntity>
     public RoleId? Id { get; set; }
     public string Name { get; set; } = "";
     public string? Description { get; set; }
+    public bool IsSuperAdmin { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = "";
@@ -27,6 +28,7 @@ public class Role : IHasEntity<RoleEntity>
             Id = roleEntity.Id,
             Name = roleEntity.Name,
             Description = roleEntity.Description,
+            IsSuperAdmin = roleEntity.IsSuperAdmin,
             CreatedAt = roleEntity.CreatedAt,
             CreatedBy = roleEntity.CreatedBy,
             UpdatedAt = roleEntity.UpdatedAt,
@@ -42,6 +44,7 @@ public class Role : IHasEntity<RoleEntity>
             Id = Id,
             Name = Name,
             Description = Description,
+            IsSuperAdmin= IsSuperAdmin,
             CreatedAt = CreatedAt,
             CreatedBy = CreatedBy,
             UpdatedAt = UpdatedAt,

@@ -10,6 +10,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<LoginAttemptEntity> LoginAttempts { get; set; }
     public DbSet<PasswordResetEntity> PasswordResets { get; set; }
     public DbSet<RoleEntity> Roles { get; set; }
+    public DbSet<RolePermissionEntity> RolePermissions { get; set; }
     public DbSet<UserEntity> Users { get; set; }
     public DbSet<UserRoleEntity> UserRoles { get; set; }
     public DbSet<UserSettingEntity> UserSettings { get; set; }
@@ -19,8 +20,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<LoginAttemptEntity>(LoginAttemptEntityBuilder.ConstructBuilder);
-        modelBuilder.Entity<UserEntity>(UserEntityBuilder.ConstructBuilder);
         modelBuilder.Entity<RoleEntity>(RoleEntityBuilder.ConstructBuilder);
+        modelBuilder.Entity<RolePermissionEntity>(RolePermissionEntityBuilder.ConstructBuilder);
+        modelBuilder.Entity<UserEntity>(UserEntityBuilder.ConstructBuilder);
         modelBuilder.Entity<UserRoleEntity>(UserRoleEntityBuilder.ConstructBuilder);
         modelBuilder.Entity<PasswordResetEntity>(PasswordResetEntityBuilder.ConstructBuilder);
         modelBuilder.Entity<UserSettingEntity>(UserSettingEntityBuilder.ConstructBuilder);

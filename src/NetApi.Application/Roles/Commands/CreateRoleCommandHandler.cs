@@ -27,9 +27,10 @@ public class CreateRoleCommandHandler(IRoleRepository repo) : ICommandHandler<Cr
             UpdatedAt = DateTime.Now,
             UpdatedBy = "system",
         };
-        var roleId = await _repo.CreateAsync(role.ToEntity());
+        var roleId = await _repo.CreateAsync(role.ToEntity(), cancellationToken);
 
         role.Id = roleId;
         return role;
     }
 }
+

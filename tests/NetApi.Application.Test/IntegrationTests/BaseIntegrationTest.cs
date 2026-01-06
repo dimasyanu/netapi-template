@@ -2,9 +2,14 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NetApi.Application.Common.Contracts;
+using NetApi.Application.Roles;
 using NetApi.Application.Users;
+using NetApi.Domain.Common.Extensions;
 using NetApi.Domain.Roles;
+using NetApi.Domain.Roles.Entities;
+using NetApi.Domain.Roles.ValueObjects;
 using NetApi.Domain.Users;
+using NetApi.Domain.Users.Entities;
 using NetApi.Domain.Users.ValueObjects;
 using NetApi.Infrastructure.Persistence;
 using NetApi.Infrastructure.Persistence.Repositories;
@@ -43,6 +48,8 @@ public abstract class BaseIntegrationTest : IDisposable
     protected virtual void ConfigureServices(IServiceCollection services)
     {
         services.AddScoped<IHashingService, HashingService>();
+        services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
     }
 
@@ -56,30 +63,24 @@ public abstract class BaseIntegrationTest : IDisposable
             using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             dbContext.Database.EnsureCreated();
 
-            var adminRole = new Role {
+            var adminRole = new RoleEntity {
                 Name = "Admin",
-                CreatedAt = DateTime.Now,
-                CreatedBy = "system",
-                UpdatedAt = DateTime.Now,
-                UpdatedBy = "system",
-            };
+                IsSuperAdmin = true
+            }.SetCreated("system");
 
-            Admin = new User {
+            var adminEntity = new UserEntity {
                 Id = UserId.New(),
                 FirstName = "Admin",
                 LastName = "User",
                 Username = "admin",
                 EmailAddress = EmailAddress.FromString("admin@mail.com"),
-                CreatedAt = DateTime.Now,
-                CreatedBy = "system",
-                UpdatedAt = DateTime.Now,
-                UpdatedBy = "system",
                 Roles = [adminRole]
-            };
-            var adminEntity = Admin.ToEntity();
+            }.SetCreated("system");
             adminEntity.PasswordHash = hasher.HashPassword(AdminPassword);
-            dbContext.Users.Add(adminEntity);
-            dbContext.SaveChanges();
+            await dbContext.Users.AddAsync(adminEntity);
+            await dbContext.SaveChangesAsync();
+
+            Admin = User.FromEntity(adminEntity);
         }
 
         using (var scope = Service.CreateScope()) {
@@ -87,6 +88,7 @@ public abstract class BaseIntegrationTest : IDisposable
             var roles = await dbContext.Roles.Include(r => r.Users).ToListAsync(cancellationToken);
             roles.Should().HaveCount(1).And.ContainSingle(r => r.Name == "Admin");
             roles[0].Users.Should().HaveCount(1).And.ContainSingle(u => u.Username == "admin");
+            roles[0].IsSuperAdmin.Should().BeTrue();
 
             var userRoles = await dbContext.UserRoles.ToListAsync(cancellationToken);
             userRoles.Should().HaveCount(1);
