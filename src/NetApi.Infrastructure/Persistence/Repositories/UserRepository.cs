@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NetApi.Application.Common.Exceptions;
@@ -9,6 +8,7 @@ using NetApi.Domain.Roles.Entities;
 using NetApi.Domain.Users.Entities;
 using NetApi.Domain.Users.Models;
 using NetApi.Domain.Users.ValueObjects;
+using System.Linq.Expressions;
 
 namespace NetApi.Infrastructure.Persistence.Repositories;
 
@@ -41,6 +41,20 @@ public class UserRepository(ILogger<UserRepository> logger, AppDbContext dbConte
 
     public async Task<UserEntity?> GetByEmailAsync(EmailAddress emailAddress, List<Expression<Func<UserEntity, object>>>? includes = null, CancellationToken cancellationToken = default)
         => await GetEagerLoadedQuery(includes).FirstOrDefaultAsync(u => u.EmailAddress == emailAddress, cancellationToken);
+
+    protected override IQueryable<UserEntity> GetEagerLoadedQuery(List<Expression<Func<UserEntity, object>>>? includes = null)
+    {
+        var query = DbContext.Users.AsQueryable();
+        if (includes != null && includes.Count > 0) {
+            foreach (var include in includes) {
+                var includeQuery = query.Include(include);
+                if (include.Body.Type == typeof(List<RoleEntity>))
+                    includeQuery = includeQuery.ThenInclude(x => ((RoleEntity)x).Permissions!);
+                query = includeQuery;
+            }
+        }
+        return query;
+    }
 
     public override UserId Create(UserEntity entity)
     {

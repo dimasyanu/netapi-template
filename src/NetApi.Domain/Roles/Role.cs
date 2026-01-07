@@ -21,6 +21,7 @@ public class Role : IHasEntity<RoleEntity>
     public bool IsDeleted { get; set; } = false;
 
     public List<User>? Users { get; set; }
+    public List<RolePermission>? Permissions { get; set; }
 
     public static Role FromEntity(RoleEntity roleEntity, bool loadUsers = false)
     {
@@ -34,7 +35,8 @@ public class Role : IHasEntity<RoleEntity>
             UpdatedAt = roleEntity.UpdatedAt,
             UpdatedBy = roleEntity.UpdatedBy,
             IsDeleted = roleEntity.DeletedAt != null,
-            Users = loadUsers ? roleEntity.Users?.Select(User.FromEntity).ToList() : null
+            Users = loadUsers ? roleEntity.Users?.Select(User.FromEntity).ToList() : null,
+            Permissions = roleEntity.Permissions?.Select(RolePermission.FromEntity).ToList(),
         };
     }
 
@@ -50,7 +52,9 @@ public class Role : IHasEntity<RoleEntity>
             UpdatedAt = UpdatedAt,
             UpdatedBy = UpdatedBy,
             DeletedAt = IsDeleted ? DateTime.Now : null,
-            Users = Users?.Select(u => u.ToEntity()).ToList()
+            Users = Users?.Select(u => u.ToEntity()).ToList(),
+            Permissions = Permissions?.Select(x => x.ToEntity()).ToList(),
         };
     }
 }
+

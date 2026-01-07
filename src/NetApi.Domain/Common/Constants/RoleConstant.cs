@@ -2,6 +2,8 @@
 
 public static class RoleConstant
 {
+    public const string FeatureName = "roles";
+
     public static class Permission
     {
         public const byte Read = 1;

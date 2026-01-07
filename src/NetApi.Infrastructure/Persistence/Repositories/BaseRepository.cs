@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NetApi.Application.Common.Models;
@@ -6,6 +5,7 @@ using NetApi.Domain.Common.Abstractions;
 using NetApi.Domain.Common.Contracts;
 using NetApi.Domain.Common.Models;
 using NetApi.Infrastructure.Persistence;
+using System.Linq.Expressions;
 
 namespace NetApi.Domain.Abstractions;
 
@@ -33,7 +33,7 @@ public abstract class BaseRepository<TEntity, TKey, TFilter>(ILogger logger, App
         };
     }
 
-    protected IQueryable<TEntity> GetEagerLoadedQuery(List<Expression<Func<TEntity, object>>>? includes = null)
+    protected virtual IQueryable<TEntity> GetEagerLoadedQuery(List<Expression<Func<TEntity, object>>>? includes = null)
     {
         var query = DbContext.Set<TEntity>().AsQueryable();
         if (includes != null && includes.Count > 0) {

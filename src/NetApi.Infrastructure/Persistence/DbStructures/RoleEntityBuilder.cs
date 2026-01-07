@@ -35,5 +35,11 @@ public class RoleEntityBuilder
                 l => l.HasOne<UserEntity>().WithMany().HasForeignKey(nameof(UserRoleEntity.UserId)).HasPrincipalKey(nameof(UserEntity.Id)),
                 r => r.HasOne<RoleEntity>().WithMany().HasForeignKey(nameof(UserRoleEntity.RoleId)).HasPrincipalKey(nameof(RoleEntity.Id)),
                 j => j.HasKey(nameof(UserRoleEntity.UserId), nameof(UserRoleEntity.RoleId)));
+
+        builder
+            .HasMany(r => r.Permissions)
+            .WithOne(p => p.Role)
+            .HasForeignKey(p => p.RoleId)
+            .HasPrincipalKey(r => r.Id);
     }
 }

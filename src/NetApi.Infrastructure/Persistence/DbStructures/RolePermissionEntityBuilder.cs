@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NetApi.Domain.Roles.Entities;
 using NetApi.Domain.Roles.ValueObjects;
@@ -11,11 +12,11 @@ public class RolePermissionEntityBuilder
         builder.Property(x => x.Id).HasConversion(
             x => x!.ToGuid(),
             x => RolePermissionId.FromGuid(x)
-        );
+        ).ValueGeneratedOnAdd();
         builder.Property(x => x.RoleId).HasConversion(
             v => v.ToShort(),
             v => RoleId.FromShort(v)
-        );
+        ).IsRequired();
         builder.Property(x => x.Feature).HasMaxLength(100).IsRequired();
         builder.Property(x => x.Action).IsRequired();
         builder.Property(x => x.IsAllowed).IsRequired();
@@ -23,10 +24,11 @@ public class RolePermissionEntityBuilder
         builder.HasKey(x => x.Id);
 
         builder
-            .HasOne(ur => ur.Role)
-            .WithMany()
+            .HasOne(p => p.Role)
+            .WithMany(r => r.Permissions)
             .HasForeignKey(ur => ur.RoleId)
-            .HasPrincipalKey(r => r.Id);
+            .HasPrincipalKey(r => r.Id)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
 

@@ -7,7 +7,6 @@ using NetApi.Application.Common.Exceptions;
 using NetApi.Application.Common.Extensions;
 using NetApi.Application.Common.Models;
 using NetApi.Application.Common.PipelineBehaviors;
-using NetApi.Application.Roles;
 using NetApi.Application.Roles.Commands;
 using NetApi.Application.Roles.Queries;
 using NetApi.Domain.Common.Extensions;
@@ -17,7 +16,6 @@ using NetApi.Domain.Users;
 using NetApi.Domain.Users.Entities;
 using NetApi.Domain.Users.ValueObjects;
 using NetApi.Infrastructure.Persistence;
-using NetApi.Infrastructure.Persistence.Repositories;
 using Xunit.Abstractions;
 
 namespace NetApi.Application.Test.IntegrationTests.Roles;
@@ -27,8 +25,6 @@ public class RoleCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
     override protected void ConfigureServices(IServiceCollection services)
     {
         base.ConfigureServices(services);
-
-        services.AddScoped<IRoleRepository, RoleRepository>();
 
         services.AddMediatR(conf => {
             conf.RegisterServicesFromAssemblyContaining<CreateRoleCommandHandler>();
@@ -65,7 +61,8 @@ public class RoleCreationTest(ITestOutputHelper output) : BaseIntegrationTest(ou
                 SortingOption = new SortingOption {
                     SortBy = "Name",
                     SortDirection = SortingOption.DIRECTION_DESCENDING
-                }
+                },
+                User = Admin
             };
             var roles = await mediator.Send(getRolesQuery);
             roles.Should().NotBeNull()

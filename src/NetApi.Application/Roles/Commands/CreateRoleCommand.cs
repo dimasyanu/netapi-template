@@ -5,7 +5,7 @@ using NetApi.Domain.Roles;
 
 namespace NetApi.Application.Roles.Commands;
 
-[Permission("roles", RoleConstant.Permission.Create)]
+[Permission(RoleConstant.FeatureName, RoleConstant.Permission.Create)]
 public class CreateRoleCommand : AuthorizedCommand<Role>
 {
     public string Name { get; set; } = "";
