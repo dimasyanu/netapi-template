@@ -7,13 +7,13 @@ namespace NetApi.Infrastructure.Persistence;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public DbSet<LoginAttemptEntity> LoginAttempts { get; set; }
-    public DbSet<PasswordResetEntity> PasswordResets { get; set; }
-    public DbSet<RoleEntity> Roles { get; set; }
-    public DbSet<RolePermissionEntity> RolePermissions { get; set; }
-    public DbSet<UserEntity> Users { get; set; }
-    public DbSet<UserRoleEntity> UserRoles { get; set; }
-    public DbSet<UserSettingEntity> UserSettings { get; set; }
+    public required DbSet<LoginAttemptEntity> LoginAttempts { get; set; }
+    public required DbSet<PasswordResetEntity> PasswordResets { get; set; }
+    public required DbSet<RoleEntity> Roles { get; set; }
+    public required DbSet<RolePermissionEntity> RolePermissions { get; set; }
+    public required DbSet<UserEntity> Users { get; set; }
+    public required DbSet<UserRoleEntity> UserRoles { get; set; }
+    public required DbSet<UserSettingEntity> UserSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
