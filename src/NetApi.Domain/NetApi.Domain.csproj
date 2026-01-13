@@ -12,4 +12,8 @@
     <None Remove="Settings\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Media/Entities/" />
+  </ItemGroup>
+
 </Project>
