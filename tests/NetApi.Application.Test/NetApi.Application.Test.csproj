@@ -35,4 +35,14 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Files/smile_cat.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Files/" />
+  </ItemGroup>
+
 </Project>

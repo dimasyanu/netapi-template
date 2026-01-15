@@ -1,4 +1,5 @@
 using NetApi.Domain.Common.Contracts;
+using NetApi.Domain.Media.Entities;
 using NetApi.Domain.Roles.Entities;
 using NetApi.Domain.Users.ValueObjects;
 
@@ -27,4 +28,5 @@ public class UserEntity :
 
     public virtual List<RoleEntity> Roles { get; set; } = [];
     public virtual List<UserSettingEntity> UserSettings { get; set; } = [];
+    public virtual IEnumerable<MediaEntity>? Media { get; set; }
 }

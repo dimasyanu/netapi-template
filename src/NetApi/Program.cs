@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Protocols.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using NetApi.Application.Auth;
 using NetApi.Application.Common.Contracts;
+using NetApi.Application.Media;
 using NetApi.Application.Roles;
 using NetApi.Application.Users;
 using NetApi.Infrastructure.Persistence.Models;
@@ -17,6 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddTransient<IHashingService, HashingService>();
+builder.Services.AddScoped<IMediaRepository, MediaRepository>();
 builder.Services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();

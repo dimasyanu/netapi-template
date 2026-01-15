@@ -112,4 +112,57 @@ public abstract class BaseIntegrationTest : IDisposable
 
         GC.SuppressFinalize(this);
     }
+
+    protected virtual void DeleteFolder(string path = "")
+    {
+        if (string.IsNullOrEmpty(path) || !Directory.Exists(path)) return;
+        var dir = new DirectoryInfo(path);
+        foreach (var subDir in dir.GetDirectories()) DeleteFolder(subDir.FullName);
+        foreach (var file in dir.GetFiles()) file.Delete();
+        Directory.Delete(path);
+    }
+
+    protected async Task<User> PrepareUser(string userName = "User1")
+    {
+        // Arrange
+        var newRole = new RoleEntity {
+            Name = "customer",
+            Description = "Editor role",
+            CreatedAt = DateTime.Now,
+            CreatedBy = Admin.Username,
+            UpdatedAt = DateTime.Now,
+            UpdatedBy = Admin.Username,
+        };
+        using (var scope = Service.CreateScope()) {
+            using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            dbContext.Roles.Add(newRole);
+            await dbContext.SaveChangesAsync();
+        }
+
+        UserId userId;
+        var lowerUsername = userName.ToLower();
+        var newUserEntity = new User {
+            Username = lowerUsername,
+            EmailAddress = EmailAddress.FromString($"{lowerUsername}@example.com"),
+            FirstName = userName,
+            LastName = "Ipsum",
+        }.ToEntity();
+        newUserEntity.Roles = [newRole];
+
+        using (var scope = Service.CreateScope()) {
+            var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+            newUserEntity.PasswordHash = "hashedpassword";
+            userId = await userRepository.CreateAsync(newUserEntity);
+        }
+
+        using (var scope = Service.CreateScope()) {
+            using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var userRoles = dbContext.UserRoles.ToList();
+            userRoles.Should().HaveCount(2);
+            userRoles.FirstOrDefault(x => x.UserId == userId && x.RoleId == newRole.Id)
+                .Should().NotBeNull();
+        }
+
+        return User.FromEntity(newUserEntity);
+    }
 }

@@ -11,6 +11,7 @@ public record class MediaType(byte Value) : IValueObject
     public static readonly MediaType Document = 3;
     public static readonly MediaType Audio = 4;
     public static readonly MediaType Other = 5;
+    public static readonly MediaType Unknown = 99;
     #endregion
 
     public static MediaType FromByte(byte value) => new(value);
