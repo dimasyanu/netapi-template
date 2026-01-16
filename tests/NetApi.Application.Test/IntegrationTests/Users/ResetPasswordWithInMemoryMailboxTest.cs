@@ -23,43 +23,43 @@ public class ResetPasswordWithInMemoryMailboxTest(ITestOutputHelper output) : Ba
     {
         base.ConfigureServices(services);
 
+
         services.AddQuartz(opt => {
-            opt.SchedulerId = _schedulerName;
-            opt.SchedulerName = _schedulerName;
+            var schedulerName = _schedulerName + '_' + GetTestName();
+            opt.SchedulerId = schedulerName;
+            opt.SchedulerName = schedulerName;
             opt.UseInMemoryStore();
-            opt.UseDefaultThreadPool(tp => tp.MaxConcurrency = 5);
+            // opt.UseDefaultThreadPool(tp => tp.MaxConcurrency = 5);
         });
         services.AddQuartzHostedService(opt => opt.WaitForJobsToComplete = true);
 
-        services.AddSingleton<IJobService, QuartzJobService>();
+        services.AddScoped<DummyMailInboxClient>(); // Register the dummy mail inbox client for simulate retrieving emails
+        services.AddScoped<IJobService, QuartzJobService>();
+        services.AddScoped<IEmailTemplateManager, DummyEmailTemplateManager>();
         services.AddSingleton<IMailService, DummyMailService>();
-        services.AddSingleton<IEmailTemplateManager, DummyEmailTemplateManager>();
-        services.AddSingleton<DummyMailInboxClient>(); // Register the dummy mail inbox client for simulate retrieving emails
         services.AddMediatR(conf => {
             conf.RegisterServicesFromAssemblyContaining<ResetPasswordCommandHandler>();
         });
         services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
-
     }
 
     [Fact]
     public async Task ResetUserPassword_UsingInMemoryMailbox_Succeeds()
     {
-        // Start job service
-        using (var scope = Service.CreateScope()) {
-            var jobService = scope.ServiceProvider.GetRequiredService<IJobService>();
-            await jobService.StartAsync();
-        }
 
         var initialPasswordHash = "";
 
         // Request reset admin password
         using (var scope = Service.CreateScope()) {
+            // Start job service
+            var jobService = scope.ServiceProvider.GetRequiredService<IJobService>();
+            await jobService.StartAsync();
+
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
             var resetPasswordRequest = new ResetPasswordCommand { Email = Admin.EmailAddress, User = Admin };
             var email = await mediator.Send(resetPasswordRequest);
             email.Should().NotBeNull().And.Be(Admin.EmailAddress);
-            await Task.Delay(100); // Wait for the "email" to be "sent"
+            await Task.Delay(300); // Wait for the "email" to be "sent"
 
             // Verify email sent
             var mailService = scope.ServiceProvider.GetRequiredService<DummyMailInboxClient>();
@@ -160,8 +160,7 @@ public class ResetPasswordWithInMemoryMailboxTest(ITestOutputHelper output) : Ba
         using (var scope = Service.CreateScope()) {
             var jobService = scope.ServiceProvider.GetRequiredService<IJobService>();
             await jobService.StartAsync();
-        }
-        using (var scope = Service.CreateScope()) {
+
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
             var resetPasswordRequest = new ResetPasswordCommand { Email = Admin.EmailAddress, User = Admin };
             await mediator.Send(resetPasswordRequest);
@@ -189,12 +188,11 @@ public class ResetPasswordWithInMemoryMailboxTest(ITestOutputHelper output) : Ba
     {
         var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(20)).Token;
 
-        // Start job service
         using (var scope = Service.CreateScope()) {
+            // Start job service
             var jobService = scope.ServiceProvider.GetRequiredService<IJobService>();
             await jobService.StartAsync();
-        }
-        using (var scope = Service.CreateScope()) {
+
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
             var resetPasswordRequest = new ResetPasswordCommand { Email = Admin.EmailAddress, User = Admin };
             await mediator.Send(resetPasswordRequest, cancellationToken);

@@ -25,10 +25,10 @@ public class ResetPasswordWithSmtpTest(ITestOutputHelper output) : BaseIntegrati
     {
         base.ConfigureServices(services);
 
-        services.AddSingleton<IJobService, QuartzJobService>();
-        services.AddSingleton<IMailService, SmtpMailService>();
+        services.AddScoped<IJobService, QuartzJobService>();
+        services.AddScoped<IMailService, SmtpMailService>();
         services.AddScoped<DummyMailtrapClient>(); // Added DummyMailTrapClient for testing purposes
-        services.AddSingleton<IEmailTemplateManager, DummyEmailTemplateManager>();
+        services.AddScoped<IEmailTemplateManager, DummyEmailTemplateManager>();
         services.AddMediatR(conf => {
             conf.RegisterServicesFromAssemblyContaining<ResetPasswordCommandHandler>();
         });

@@ -1,3 +1,4 @@
+using System.Reflection;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -164,5 +165,13 @@ public abstract class BaseIntegrationTest : IDisposable
         }
 
         return User.FromEntity(newUserEntity);
+    }
+
+    protected string GetTestName()
+    {
+        var type = Output.GetType();
+        var testMember = type.GetField("test", BindingFlags.Instance | BindingFlags.NonPublic);
+        var test = (ITest)testMember!.GetValue(Output)!;
+        return test.DisplayName.Split('.').Last();
     }
 }
