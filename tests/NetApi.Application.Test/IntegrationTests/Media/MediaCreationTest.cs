@@ -57,13 +57,4 @@ public class MediaCreationTest(ITestOutputHelper outputHelper) : BaseIntegration
             media.UserId.Should().Be(user.Id);
         }
     }
-
-    public override void Dispose()
-    {
-        // Remove all dummy files
-        DeleteFolder("Files");
-        DeleteFolder("Media");
-        base.Dispose();
-        GC.SuppressFinalize(this);
-    }
 }

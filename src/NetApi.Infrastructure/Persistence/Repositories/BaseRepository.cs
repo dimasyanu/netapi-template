@@ -113,6 +113,7 @@ public abstract class BaseRepository<TEntity, TKey, TFilter>(ILogger logger, App
 
     public virtual async Task<TEntity?> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
+        DbContext.Set<TEntity>().Attach(entity);
         DbContext.Set<TEntity>().Update(entity);
         await DbContext.SaveChangesAsync(cancellationToken);
         return entity;

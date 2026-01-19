@@ -1,9 +1,14 @@
+using System.Xml;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using NetApi.Application.Common.Exceptions;
 using NetApi.Application.Media;
 using NetApi.Domain.Abstractions;
+using NetApi.Domain.Media;
 using NetApi.Domain.Media.Entities;
 using NetApi.Domain.Media.Models;
 using NetApi.Domain.Media.ValueObjects;
+using NetApi.Domain.Users.ValueObjects;
 
 namespace NetApi.Infrastructure.Persistence.Repositories;
 
@@ -35,5 +40,22 @@ public class MediaRepository(ILogger<MediaRepository> logger, AppDbContext dbCon
         }
 
         return entities;
+    }
+
+    public async Task<IReadOnlyList<MediaEntity>> GetListAsync(MediaFilter filter, CancellationToken cancellationToken = default)
+    {
+        var query = FilterEntities(Entities, filter);
+        var items = await query.ToListAsync(cancellationToken);
+        return items;
+    }
+
+    public async Task<bool> CheckOwnershipAsync(IEnumerable<object> ids, UserId userId)
+    {
+        if (ids.Any(x => x is not MediaId && x is not Guid))
+            throw new BadRequestException("Invalid id(s)");
+
+        var mediaIds = ids.Select(x => x is Guid guid ? MediaId.FromGuid(guid) : (MediaId)x);
+
+        return await Entities.Where(x => mediaIds.Contains(x.Id)).AllAsync(x => x.UserId == userId);
     }
 }

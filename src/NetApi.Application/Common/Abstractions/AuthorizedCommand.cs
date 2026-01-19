@@ -13,13 +13,13 @@ public abstract class AuthorizedCommand<TResult> : IAuthorizedRequest, ICommand<
     public bool IsAuthenticated()
         => User != null && User.Id != null && !User.Id.IsEmpty();
 
-    public (string, byte) GetRequestPermission()
+    public (string, byte, bool) GetRequestPermission()
     {
         var type = GetType();
-        var attribute = type.GetCustomAttribute<PermissionAttribute>()
+        var attribute = type.GetCustomAttribute<AuthorizeAttribute>()
             ?? throw new InternalErrorException($"{type.Name} is not implementing any permission.");
 
-        return (attribute.Feature, attribute.Action);
+        return (attribute.Feature, attribute.Action, attribute.RestrictOwnership);
     }
 }
 

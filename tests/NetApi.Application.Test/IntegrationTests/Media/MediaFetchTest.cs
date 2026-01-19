@@ -1,7 +1,20 @@
+using FluentAssertions;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using NetApi.Application.Common;
+using NetApi.Application.Common.Exceptions;
+using NetApi.Application.Common.PipelineBehaviors;
+using NetApi.Application.Media;
+using NetApi.Application.Media.Queries;
+using NetApi.Application.Roles;
+using NetApi.Domain.Common.Constants;
+using NetApi.Domain.Common.Extensions;
 using NetApi.Domain.Media.Entities;
 using NetApi.Domain.Media.ValueObjects;
+using NetApi.Domain.Roles.Entities;
+using NetApi.Domain.Users;
 using NetApi.Infrastructure.Persistence;
+using NetApi.Infrastructure.Persistence.Repositories;
 using Xunit.Abstractions;
 
 namespace NetApi.Application.Test.IntegrationTests.Media;
@@ -9,36 +22,94 @@ namespace NetApi.Application.Test.IntegrationTests.Media;
 public class MediaFetchTest(ITestOutputHelper output) : BaseIntegrationTest(output)
 {
     private const string DummyFilePath = "Files/smile_cat.jpg";
+    private readonly List<User> _users = [];
 
     protected override void ConfigureServices(IServiceCollection services)
     {
         base.ConfigureServices(services);
+
+        services.AddScoped<IMediaRepository, MediaRepository>();
+
+        services.AddMediatR(conf => {
+            conf.RegisterServicesFromAssemblyContaining<GetAuthorizedMediaByIdQueryHandler>();
+            conf.AddOpenBehavior(typeof(AuthorizedRequestBehavior<,>));
+        });
     }
 
     [Fact]
     public async Task FetchSingleMedia_AsAnotherUser_ShouldFailed()
     {
-        await PrepareMedia(10);
+        var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(20)).Token;
+        var mediaList = await PrepareMedia(10);
+        var anotherUser = await PrepareUser("User2");
+        mediaList.Should().AllSatisfy(x => x.Id.Should().NotBe(MediaId.Empty));
+
+        // Get a single media by random index
+        var randomIndex = new Random().Next(mediaList.Count);
+        var targetMedia = mediaList[randomIndex];
+
+        var query = new GetAuthorizedMediaByIdQuery {
+            MediaId = targetMedia.Id!.ToGuid(),
+            User = anotherUser,
+        };
+
+        using (var scope = Service.CreateScope()) {
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            Func<Task> action = async () => await mediator.Send(query, cancellationToken);
+            await action.Should().ThrowAsync<UnauthorizedException>();
+        }
     }
 
-    private async Task PrepareMedia(byte count)
+    [Fact]
+    public async Task FetchSingleMedia_AsTheOwner_ShouldSuccess()
+    {
+        var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(20)).Token;
+        var mediaList = await PrepareMedia(10);
+        mediaList.Should().AllSatisfy(x => x.Id.Should().NotBe(MediaId.Empty));
+
+        // Get a single media by random index
+        var randomIndex = new Random().Next(mediaList.Count);
+        var targetMedia = mediaList[randomIndex];
+
+        var query = new GetAuthorizedMediaByIdQuery {
+            MediaId = targetMedia.Id!.ToGuid(),
+            User = _users[0],
+        };
+
+        using (var scope = Service.CreateScope()) {
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            Func<Task> action = async () => await mediator.Send(query, cancellationToken);
+            await action.Should().NotThrowAsync();
+        }
+    }
+
+    private async Task<IReadOnlyList<MediaEntity>> PrepareMedia(byte count)
     {
         const string physicalPath = "Media/Images";
         if (!Directory.Exists(physicalPath)) Directory.CreateDirectory(physicalPath);
 
         var fileNames = new List<string>();
-        var user = await PrepareUser("User1");
-        var tasks = new List<Task>();
+        var user = await PrepareUser("User1", async userEntity => {
+            using var scope = Service.CreateScope();
+            var roleRepo = scope.ServiceProvider.GetRequiredService<IRoleRepository>();
+            var role = userEntity.Roles[0];
+            role.Permissions = [
+                new RolePermissionEntity() {
+                    Feature = Feature.Media,
+                    Action = Permission.Read,
+                    IsAllowed = true,
+                }.SetCreated(Admin.Username)
+            ];
+            await roleRepo.UpdateAsync(role);
+        });
 
-        using var srcFileStream = File.OpenRead(DummyFilePath);
-        for (var i = 0; i < count; i++) {
+        var tasks = new List<Task>();
+        var srcFileBytes = await File.ReadAllBytesAsync(DummyFilePath);
+        for (byte i = 0; i < count; i++) {
             var c = i + 1;
-            tasks.Add(Task.Run(async () => {
-                var fileName = $"pic{c}.jpg";
-                using var fileStream = File.Create($"{physicalPath}/{fileName}");
-                tasks.Add(srcFileStream.CopyToAsync(fileStream));
-                fileNames.Add(fileName);
-            }));
+            fileNames.Add($"pic{c}.jpg");
+            var fileName = $"pic{c}.jpg";
+            tasks.Add(File.AppendAllBytesAsync($"{physicalPath}/{fileName}", srcFileBytes));
         }
 
         using var scope = Service.CreateScope();
@@ -51,7 +122,7 @@ public class MediaFetchTest(ITestOutputHelper output) : BaseIntegrationTest(outp
                 Path = "Media/Images",
                 Format = "jpg",
                 MediaType = MediaType.Image,
-                SizeInKb = srcFileStream.Length / 1024.0,
+                SizeInKb = srcFileBytes.Length / 1024.0,
                 UserId = user.Id,
                 CreatedAt = DateTime.Now,
                 CreatedBy = "user1",
@@ -65,14 +136,9 @@ public class MediaFetchTest(ITestOutputHelper output) : BaseIntegrationTest(outp
             await dbContext.SaveChangesAsync();
         }));
         await Task.WhenAll(tasks);
-    }
 
-    public override void Dispose()
-    {
-        // Remove all dummy files
-        DeleteFolder("Files");
-        DeleteFolder("Media");
-        base.Dispose();
-        GC.SuppressFinalize(this);
+        _users.Add(user);
+
+        return newEntities;
     }
 }

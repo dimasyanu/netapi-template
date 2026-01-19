@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using NetApi.Application.Common;
 using NetApi.Application.Common.Exceptions;
 using NetApi.Application.Common.PipelineBehaviors;
 using NetApi.Application.Roles.Commands;
@@ -56,8 +57,8 @@ public class RolePermissionTest(ITestOutputHelper output) : BaseIntegrationTest(
             var roles = await dbContext.Roles.ToListAsync(cancellationToken);
             var permission = await dbContext.RolePermissions.SingleAsync(x =>
                 x.RoleId == user.Roles![0].Id
-                && x.Feature == RoleConstant.FeatureName
-                && x.Action == RoleConstant.Permission.Create
+                && x.Feature == Feature.Role
+                && x.Action == Permission.Create
             );
             permission.IsAllowed = true;
             dbContext.RolePermissions.Update(permission);
@@ -106,8 +107,8 @@ public class RolePermissionTest(ITestOutputHelper output) : BaseIntegrationTest(
             var roles = await dbContext.Roles.ToListAsync(cancellationToken);
             var permission = await dbContext.RolePermissions.SingleAsync(x =>
                 x.RoleId == user.Roles![0].Id
-                && x.Feature == RoleConstant.FeatureName
-                && x.Action == RoleConstant.Permission.Read
+                && x.Feature == Feature.Role
+                && x.Action == Permission.Read
             );
             permission.IsAllowed = true;
             dbContext.RolePermissions.Update(permission);
@@ -142,23 +143,23 @@ public class RolePermissionTest(ITestOutputHelper output) : BaseIntegrationTest(
                     IsSuperAdmin = false,
                     Permissions = [
                         new RolePermissionEntity() {
-                            Feature = RoleConstant.FeatureName,
-                            Action = RoleConstant.Permission.Read,
+                            Feature = Feature.Role,
+                            Action = Permission.Read,
                             IsAllowed = false,
                         }.SetCreated(adminEmailAddress),
                         new RolePermissionEntity() {
-                            Feature = RoleConstant.FeatureName,
-                            Action = RoleConstant.Permission.Create,
+                            Feature = Feature.Role,
+                            Action = Permission.Create,
                             IsAllowed = false,
                         }.SetCreated(adminEmailAddress),
                         new RolePermissionEntity() {
-                            Feature = RoleConstant.FeatureName,
-                            Action = RoleConstant.Permission.Update,
+                            Feature = Feature.Role,
+                            Action = Permission.Update,
                             IsAllowed = false,
                         }.SetCreated(adminEmailAddress),
                         new RolePermissionEntity() {
-                            Feature = RoleConstant.FeatureName,
-                            Action = RoleConstant.Permission.Delete,
+                            Feature = Feature.Role,
+                            Action = Permission.Delete,
                             IsAllowed = false,
                         }.SetCreated(adminEmailAddress),
                     ]
