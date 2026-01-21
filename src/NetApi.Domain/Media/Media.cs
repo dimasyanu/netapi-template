@@ -15,6 +15,7 @@ public class Media : IHasEntity<MediaEntity>
     public MediaType MediaType { get; set; } = MediaType.Empty;
     public double SizeInKb { get; set; }
     public string Path { get; set; } = "";
+    public bool IsDirectory { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = "";
@@ -39,7 +40,7 @@ public class Media : IHasEntity<MediaEntity>
             User = User!.ToEntity(),
         };
 
-    public static Media FromEntity(MediaEntity entity)
+    public static Media FromEntity(MediaEntity entity, bool isDirectory = false)
         => new() {
             Id = entity.Id,
             UserId = entity.UserId,
@@ -48,10 +49,17 @@ public class Media : IHasEntity<MediaEntity>
             MediaType = entity.MediaType,
             SizeInKb = entity.SizeInKb,
             Path = entity.Path,
+            IsDirectory = isDirectory,
             CreatedAt = entity.CreatedAt,
             CreatedBy = entity.CreatedBy,
             UpdatedAt = entity.UpdatedAt,
             UpdatedBy = entity.UpdatedBy,
             User = entity.User != null ? User.FromEntity(entity.User) : null,
+        };
+
+    public static Media FromDirectory(string name)
+        => new() {
+            Name = name,
+            IsDirectory = true,
         };
 }

@@ -7,6 +7,8 @@ using MediaDto = NetApi.Domain.Media.Media;
 namespace NetApi.Application.Media.Queries;
 
 [Authorize(Feature.Media, Permission.Read)]
-public class GetAuthorizedMediaListQuery : AuthorizedQuery<MediaDto>
+public class GetAuthorizedMediaListQuery : AuthorizedQuery<IReadOnlyList<MediaDto>>
 {
+    public string Name { get; set; } = "";
+    public string Path { get; set; } = "/";
 }

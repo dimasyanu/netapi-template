@@ -1,10 +1,9 @@
-using System.Xml;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NetApi.Application.Common.Exceptions;
 using NetApi.Application.Media;
 using NetApi.Domain.Abstractions;
-using NetApi.Domain.Media;
 using NetApi.Domain.Media.Entities;
 using NetApi.Domain.Media.Models;
 using NetApi.Domain.Media.ValueObjects;
@@ -42,11 +41,36 @@ public class MediaRepository(ILogger<MediaRepository> logger, AppDbContext dbCon
         return entities;
     }
 
-    public async Task<IReadOnlyList<MediaEntity>> GetListAsync(MediaFilter filter, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<MediaEntity>> GetFileListAsync(MediaFilter filter, CancellationToken cancellationToken = default)
     {
         var query = FilterEntities(Entities, filter);
         var items = await query.ToListAsync(cancellationToken);
         return items;
+    }
+
+    public async Task<IReadOnlyList<string>> GetDirectoryListAsync(MediaFilter filter, CancellationToken cancellationToken = default)
+    {
+        if (filter.UserId == null || filter.UserId == UserId.Empty) throw new UnauthorizedException();
+
+        var path = filter.Path ?? "/";
+        if (!path.StartsWith('/')) path = "/" + path;
+        if (!path.EndsWith('/')) path += "/";
+
+        var pathPattern1 = @$"^{Regex.Escape(path)}[^/]+$"; // Directories one level below the current path
+        var query = Entities
+            .Where(x => x.UserId == filter.UserId)
+            .Where(x => Regex.IsMatch(x.Path, pathPattern1));
+        var test = await query.ToListAsync(cancellationToken);
+        var directoryQuery = query
+            .Select(x => x.Path)
+            .Distinct();
+
+        if (!string.IsNullOrEmpty(filter.Name)) {
+            var fName = filter.Name.ToLower().Trim();
+            directoryQuery = directoryQuery.Where(x => x.ToLower().Contains(fName));
+        }
+
+        return [.. directoryQuery];
     }
 
     public async Task<bool> CheckOwnershipAsync(IEnumerable<object> ids, UserId userId)
