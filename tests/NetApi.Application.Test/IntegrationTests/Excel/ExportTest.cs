@@ -27,26 +27,51 @@ public class ExportTest(ITestOutputHelper output) : BaseIntegrationTest(output)
             new() { Key = "name", Value = "Name" },
             new() { Key = "age", Value = "Age" },
             new() {
+                Value = "Selection",
+                SubValues = [
+                    new() { Key = "selectionDate", Value = "Date" },
+                    new() { Key = "selectionStatus", Value = "Status"}
+                ],
+                HorizontalAlign = ExcelCellHorizontalAlign.Center
+            },
+            new() {
                 Value = "Psikotest",
                 SubValues = [
-                    new() { Key = "date", Value = "Date" },
-                    new() { Key = "status", Value = "Status"}
-                ]
-            }
+                    new() { Key = "psikotestDate", Value = "Date" },
+                    new() { Key = "psikotestStatus", Value = "Status"}
+                ],
+                HorizontalAlign = ExcelCellHorizontalAlign.Center
+            },
+            new() {
+                Value = "Interview",
+                SubValues = [
+                    new() { Key = "interviewDate", Value = "Date" },
+                    new() { Key = "interviewStatus", Value = "Status"}
+                ],
+                HorizontalAlign = ExcelCellHorizontalAlign.Center
+            },
         };
 
         var data = new List<IEnumerable<ExcelCell>> {
             ([
             new() { Key = "name", Value = "John Doe" },
                 new() { Key = "age", Value = "30" },
-                new() { Key = "date", Value = "2024-01-01" },
-                new() { Key = "status", Value = "Passed" },
+                new() { Key = "selectionDate", Value = "2024-01-01" },
+                new() { Key = "selectionStatus", Value = "Passed" },
+                new() { Key = "psikotestDate", Value = "2024-01-02" },
+                new() { Key = "psikotestStatus", Value = "Passed" },
+                new() { Key = "interviewDate", Value = "2024-01-03" },
+                new() { Key = "interviewStatus", Value = "Passed" },
             ]),
             ([
                 new() { Key = "name", Value = "Jane Smith" },
                 new() { Key = "age", Value = "25" },
-                new() { Key = "date", Value = "2024-02-01" },
-                new() { Key = "status", Value = "Failed" },
+                new() { Key = "selectionDate", Value = "2024-02-01" },
+                new() { Key = "selectionStatus", Value = "Failed" },
+                new() { Key = "psikotestDate", Value = "2024-02-02" },
+                new() { Key = "psikotestStatus", Value = "Failed" },
+                new() { Key = "interviewDate", Value = "2024-02-03" },
+                new() { Key = "interviewStatus", Value = "Failed" },
             ])
         };
 
