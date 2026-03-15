@@ -1,9 +1,9 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/NetApi.Infrastructure/NetApi.Infrastructure.csproj" />
-    <Project Path="src/NetApi/NetApi.csproj" />
     <Project Path="src/NetApi.Application/NetApi.Application.csproj" />
     <Project Path="src/NetApi.Domain/NetApi.Domain.csproj" />
+    <Project Path="src/NetApi.Infrastructure/NetApi.Infrastructure.csproj" />
+    <Project Path="src/NetApi/NetApi.csproj" />
   </Folder> 
   <Folder Name="/tests/">
     <Project Path="tests/NetApi.Application.Test/NetApi.Application.Test.csproj" />
